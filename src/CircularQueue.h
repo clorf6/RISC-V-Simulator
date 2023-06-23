@@ -63,6 +63,14 @@ public:
         return data[pos];
     }
 
+    const T& operator[](DataUnit pos) const {
+        return data[pos];
+    }
+
+    const T& front() const {
+        return data[head];
+    }
+
     ~CircularQueue() = default;
 };
 

@@ -20,14 +20,6 @@ void Register::SetDependency(DataUnit other_dependency) {
     dependency = other_dependency;
 }
 
-DataUnit Register::Data() const {
-    return data;
-}
-
-DataUnit Register::Dependency() const {
-    return dependency;
-}
-
 Register RegisterFile::Read(DataUnit pos) const {
     return registers[pos];
 }
