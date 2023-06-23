@@ -14,7 +14,6 @@
 
 enum class CommitType {
     Register,
-    Memory,
     Branch,
     Done
 };
@@ -42,6 +41,12 @@ public:
     void Flush();
 
     bool full() const;
+
+    bool empty() const;
+
+    const ReorderBufferData& front() const;
+
+    void pop();
 
     void clear();
 };

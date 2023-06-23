@@ -2,8 +2,8 @@
 // Created by 屋顶上的小丑 on 2023/6/21.
 //
 
-#ifndef RISC_V_SIMULATOR_ALU_H
-#define RISC_V_SIMULATOR_ALU_H
+#ifndef RISC_V_SIMULATOR_UNIT_H
+#define RISC_V_SIMULATOR_UNIT_H
 
 #include <cstdio>
 #include <iostream>
@@ -12,7 +12,7 @@
 #include "ReorderBuffer.h"
 #include "ReservationStation.h"
 
-class ALU {
+class Unit {
     friend class ReservationStation;
 protected:
     bool ready;
@@ -20,7 +20,7 @@ protected:
     DataUnit val;
     DataUnit pos;
 public:
-    ALU() : ready(false), busy(0), val(0), pos(0) {}
+    Unit() : ready(false), busy(0), val(0), pos(0) {}
 
     void clear();
 
@@ -32,28 +32,35 @@ public:
                          const DataUnit &, const DataUnit &, const DataUnit &);
 };
 
-class AddALU : public ALU {
+class AddALU : public Unit {
 public:
     void Execute(const InstructionName &, const DataUnit &,
                  const DataUnit &, const DataUnit &, const DataUnit &) override;
 };
 
-class ShiftALU : public ALU {
+class ShiftALU : public Unit {
 public:
     void Execute(const InstructionName &, const DataUnit &,
                  const DataUnit &, const DataUnit &, const DataUnit &) override;
 };
 
-class BitALU : public ALU {
+class BitALU : public Unit {
 public:
     void Execute(const InstructionName &, const DataUnit &,
                  const DataUnit &, const DataUnit &, const DataUnit &) override;
 };
 
-class CompALU : public ALU {
+class CompALU : public Unit {
 public:
     void Execute(const InstructionName &, const DataUnit &,
                  const DataUnit &, const DataUnit &, const DataUnit &) override;
 };
 
-#endif //RISC_V_SIMULATOR_ALU_H
+class MU : public Unit {
+public:
+    void Execute(const InstructionName &, const DataUnit &,
+                 const DataUnit &, const DataUnit &, const DataUnit &,
+                 Memory &);
+};
+
+#endif //RISC_V_SIMULATOR_UNIT_H

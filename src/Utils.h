@@ -15,4 +15,5 @@ using SignedHalfDataUnit = int16_t;
 using Byte = uint8_t;
 using SignedByte = int8_t;
 
+
 #endif //RISC_V_SIMULATOR_UTILS_H

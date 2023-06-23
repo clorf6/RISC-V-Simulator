@@ -15,26 +15,6 @@ const ReorderBufferData &ReorderBuffer::operator[](DataUnit pos) const {
     return buffer[pos];
 }
 
-void ReorderBuffer::Commit() {
-    if (buffer.empty()) return;
-    if (!buffer.front().ready) return;
-    switch (buffer.front().type) {
-        case CommitType::Register: {
-
-        }
-        case CommitType::Memory: {
-
-        }
-        case CommitType::Branch: {
-
-        }
-        case CommitType::Done: {
-
-        }
-    }
-    nex_buffer.pop();
-}
-
 void ReorderBuffer::Add(const ReorderBufferData &now) {
     nex_buffer.push(now);
     /*TO DO,更新寄存器依赖*/
@@ -46,6 +26,18 @@ void ReorderBuffer::Flush() {
 
 bool ReorderBuffer::full() const {
     return buffer.full();
+}
+
+bool ReorderBuffer::empty() const {
+    return buffer.empty();
+}
+
+const ReorderBufferData& ReorderBuffer::front() const {
+    return buffer.front();
+}
+
+void ReorderBuffer::pop() {
+    nex_buffer.pop();
 }
 
 void ReorderBuffer::clear() {

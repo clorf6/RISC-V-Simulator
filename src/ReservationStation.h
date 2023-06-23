@@ -11,21 +11,21 @@
 #include "Instructions.h"
 #include "ReorderBuffer.h"
 #include "Bus.h"
-#include "ALU.h"
+#include "Unit.h"
 
 struct StationData {
-    bool busy, ready;
+    bool busy, ready, type;
     InstructionName name;
     DataUnit Vj, Vk;
     SignedDataUnit Qj, Qk;
     DataUnit pos;
 
-    StationData() : busy(false), ready(false), Qj(-1), Qk(-1) {}
+    StationData() : busy(false), ready(false), type(false), Qj(-1), Qk(-1) {}
 
     StationData(const InstructionName &Name, const DataUnit &vj,
-                const DataUnit &vk, const DataUnit &Pos,
+                const DataUnit &vk, const DataUnit &Pos, const bool Type = false,
                 const SignedDataUnit &qj = -1, const SignedDataUnit &qk = -1) :
-                busy(false), ready(false), name(Name), Vj(vj), Vk(vk),
+                busy(false), ready(false), type(Type), name(Name), Vj(vj), Vk(vk),
                 Qj(qj), Qk(qk), pos(Pos) {}
 };
 
@@ -41,6 +41,8 @@ private:
     ShiftALU shiftALU[ALUSize];
     BitALU bitALU[ALUSize];
     CompALU compALU[ALUSize];
+    MU LSU;
+
 public:
     StationData& operator[] (DataUnit);
 
@@ -52,7 +54,7 @@ public:
 
     bool Add(const StationData &);
 
-    void Execute();//给ALU运行
+    void Execute(Memory &);//给ALU&MU运行
 
     void Return(ReorderBuffer &);//返回结果给RoB
 

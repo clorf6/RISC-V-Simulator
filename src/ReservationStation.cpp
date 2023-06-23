@@ -17,6 +17,7 @@ const StationData& ReservationStation::operator[](DataUnit pos) const {
 
 void ReservationStation::Flush() {
     for (int i = 0; i < StationSize; i++) station[i] = nex_station[i];
+    LSU.Flush();
     for (int i = 0; i < ALUSize; i++) {
         addALU[i].Flush();
         shiftALU[i].Flush();
@@ -27,6 +28,7 @@ void ReservationStation::Flush() {
 
 void ReservationStation::clear() {
     for (int i = 0; i < StationSize; i++) nex_station[i].busy = false;
+    LSU.clear();
     for (int i = 0; i < ALUSize; i++) {
         addALU[i].clear();
         shiftALU[i].clear();
@@ -46,10 +48,23 @@ bool ReservationStation::Add(const StationData &now) {
     return false;
 }
 
-void ReservationStation::Execute() {
+void ReservationStation::Execute(Memory &memory) {
     for (int i = 0; i < StationSize; i++) {
         if ((!station[i].busy) || station[i].ready) continue;
         switch (station[i].name) {
+            case InstructionName::LB:
+            case InstructionName::LH:
+            case InstructionName::LW:
+            case InstructionName::SB:
+            case InstructionName::SH:
+            case InstructionName::SW:
+            case InstructionName::LBU:
+            case InstructionName::LHU:
+                if (!LSU.busy) {
+                    nex_station[i].ready = true;
+                    LSU.Execute(station[i].name, i, station[i].Vj, station[i].Vk, 3, memory);
+                }
+                break;
             case InstructionName::ADD:
             case InstructionName::SUB:
             case InstructionName::ADDI:
@@ -114,6 +129,7 @@ void ReservationStation::Execute() {
 }
 
 void ReservationStation::Return(ReorderBuffer &reorderBuffer) {
+    LSU.Return(reorderBuffer, (*this));
     for (int i = 0; i < ALUSize; i++) {
         addALU[i].Return(reorderBuffer, (*this));
         shiftALU[i].Return(reorderBuffer, (*this));
@@ -126,11 +142,11 @@ void ReservationStation::Update(const ReorderBuffer &reorderBuffer) {
     for (int i = 0; i < StationSize; i++) {
         if ((!station[i].busy) || station[i].ready) continue;
         if (reorderBuffer[station[i].Qj].ready) {
-            nex_station[i].Vj = reorderBuffer[station[i].Qj].val;
+            nex_station[i].Vj = static_cast<DataUnit>(static_cast<SignedDataUnit>(nex_station[i].Vj) + reorderBuffer[station[i].Qj].val);
             nex_station[i].Qj = -1;
         }
         if (reorderBuffer[station[i].Qk].ready) {
-            nex_station[i].Vk = reorderBuffer[station[i].Qk].val;
+            nex_station[i].Vk = static_cast<DataUnit>(static_cast<SignedDataUnit>(nex_station[i].Vk) + reorderBuffer[station[i].Qk].val);
             nex_station[i].Qk = -1;
         }
     }
