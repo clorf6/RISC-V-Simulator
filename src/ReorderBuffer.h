@@ -55,6 +55,8 @@ public:
 
     void pop();
 
+    void pop_back();
+
     void clear();
 };
 

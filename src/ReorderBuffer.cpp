@@ -88,6 +88,10 @@ void ReorderBuffer::pop() {
     nex_buffer.pop();
 }
 
+void ReorderBuffer::pop_back() {
+    nex_buffer.pop_back();
+}
+
 void ReorderBuffer::clear() {
     nex_buffer.clear();
 }

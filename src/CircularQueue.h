@@ -58,6 +58,10 @@ public:
         head = nex(head);
     }
 
+    void pop_back() {
+        tail = pre(tail);
+    }
+
     void clear() {
         head = tail = 0;
     }

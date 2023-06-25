@@ -58,8 +58,8 @@ void InstructionUnit::Issue(ReorderBuffer &reorderBuffer, ReservationStation &re
             StationInitRegister(reorderBuffer, registerFile, instruction.rs1, false);
             StationInitRegister(reorderBuffer, registerFile, instruction.rs2, true);
             RSData.pos = reorderBuffer.Add(RobData, registerFile);
-            reservationStation.Add(RSData);
-            PC += 4;
+            if (reservationStation.Add(RSData)) PC += 4;
+            else reorderBuffer.pop_back();
             break;
         }
         case InstructionName::ADDI:
@@ -78,8 +78,8 @@ void InstructionUnit::Issue(ReorderBuffer &reorderBuffer, ReservationStation &re
             StationInitRegister(reorderBuffer, registerFile, instruction.rs1, false);
             RSData.Vk = instruction.imm;
             RSData.pos = reorderBuffer.Add(RobData, registerFile);
-            reservationStation.Add(RSData);
-            PC += 4;
+            if (reservationStation.Add(RSData)) PC += 4;
+            else reorderBuffer.pop_back();
             break;
         }
         case InstructionName::BEQ:
@@ -103,7 +103,10 @@ void InstructionUnit::Issue(ReorderBuffer &reorderBuffer, ReservationStation &re
             StationInitRegister(reorderBuffer, registerFile, instruction.rs1, false);
             StationInitRegister(reorderBuffer, registerFile, instruction.rs2, true);
             RSData.pos = reorderBuffer.Add(RobData, registerFile);
-            reservationStation.Add(RSData);
+            if (!reservationStation.Add(RSData)) {
+                reorderBuffer.pop_back();
+                PC = RobData.add;
+            }
             break;
         }
         case InstructionName::LB:
@@ -119,8 +122,8 @@ void InstructionUnit::Issue(ReorderBuffer &reorderBuffer, ReservationStation &re
             RSData.Vk = static_cast<DataUnit>(RSData.Vk +
                         static_cast<SignedDataUnit>(instruction.imm));
             RSData.pos = reorderBuffer.Add(RobData, registerFile);
-            reservationStation.Add(RSData);
-            PC += 4;
+            if (reservationStation.Add(RSData)) PC += 4;
+            else reorderBuffer.pop_back();
             break;
         }
         case InstructionName::SB:
@@ -134,8 +137,8 @@ void InstructionUnit::Issue(ReorderBuffer &reorderBuffer, ReservationStation &re
             RSData.Vk = static_cast<DataUnit>(RSData.Vk +
                         static_cast<SignedDataUnit>(instruction.imm));
             RSData.pos = reorderBuffer.Add(RobData, registerFile);
-            reservationStation.Add(RSData);
-            PC += 4;
+            if (reservationStation.Add(RSData)) PC += 4;
+            else reorderBuffer.pop_back();
             break;
         }
         case InstructionName::LUI: {
@@ -175,8 +178,8 @@ void InstructionUnit::Issue(ReorderBuffer &reorderBuffer, ReservationStation &re
             RSData.Vj = static_cast<DataUnit>(RSData.Vj +
                         static_cast<SignedDataUnit>(instruction.imm));
             RSData.pos = reorderBuffer.Add(RobData, registerFile);
-            reservationStation.Add(RSData);
-            Stall = true;
+            if (reservationStation.Add(RSData)) Stall = true;
+            else reorderBuffer.pop_back();
             break;
         }
         case InstructionName::END: {
