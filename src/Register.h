@@ -11,6 +11,7 @@
 
 class Register {
     friend class InstructionUnit;
+    friend class RegisterFile;
 private:
     DataUnit data = 0;
     SignedDataUnit dependency = -1;

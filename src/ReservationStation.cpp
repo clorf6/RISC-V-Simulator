@@ -7,11 +7,11 @@
 
 #include "ReservationStation.h"
 
-StationData& ReservationStation::operator[] (DataUnit pos) {
+StationData &ReservationStation::operator[](DataUnit pos) {
     return nex_station[pos];
 }
 
-const StationData& ReservationStation::operator[](DataUnit pos) const {
+const StationData &ReservationStation::operator[](DataUnit pos) const {
     return station[pos];
 }
 
@@ -151,7 +151,8 @@ void ReservationStation::Update(const ReorderBuffer &reorderBuffer) {
             nex_station[i].Qj = -1;
         }
         if ((~station[i].Qk) && reorderBuffer[station[i].Qk].ready) {
-            nex_station[i].Vk = static_cast<DataUnit>(static_cast<SignedDataUnit>(nex_station[i].Vk) + reorderBuffer[station[i].Qk].val);
+            nex_station[i].Vk = static_cast<DataUnit>(static_cast<SignedDataUnit>(nex_station[i].Vk) +
+                                                      reorderBuffer[station[i].Qk].val);
             nex_station[i].Qk = -1;
         }
     }

@@ -16,7 +16,8 @@
 
 class InstructionUnit {
     friend class ReservationStation;
-
+    friend class ReorderBuffer;
+    friend class Bus;
 private:
     Register PC;
     Predictor predictor;
@@ -24,10 +25,11 @@ private:
 
     static void StationInit(const InstructionName &);
 
-    static void StationInitRegister(Bus &, const DataUnit &, bool);
+    static void StationInitRegister(ReorderBuffer &, RegisterFile &, const DataUnit &, bool);
 
 public:
-    void Issue(Bus &);
+    void Issue(ReorderBuffer &, ReservationStation &,
+               RegisterFile &, Memory &);
 };
 
 static ReorderBufferData RobData;

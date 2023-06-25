@@ -18,10 +18,50 @@ const ReorderBufferData &ReorderBuffer::operator[](DataUnit Pos) const {
 DataUnit ReorderBuffer::Add(const ReorderBufferData &now,
                             RegisterFile &registerFile) {
     nex_buffer.push(now);
-    if (now.type == CommitType::Register && now.pos) {
+    if (now.type == CommitType::RegisterWrite && now.pos) {
         registerFile[now.pos].SetDependency(nex_buffer.Tail());
     }
     return nex_buffer.Tail();
+}
+
+bool ReorderBuffer::Commit(InstructionUnit &instructionUnit,
+                           ReservationStation &reservationStation,
+                           RegisterFile &registerFile, Memory &memory) {
+    if (empty()) return true;
+    if (!front().ready) return true;
+    reservationStation.Update(*this);
+    switch (front().type) {
+        case CommitType::RegisterWrite: {
+            registerFile.Write(front().pos,
+                               front().val,
+                               Head());
+            break;
+        }
+        case CommitType::MemoryWrite: {
+            memory.Write(front().pos,
+                         front().val,
+                         front().name);
+            break;
+        }
+        case CommitType::Branch: {
+            bool ans = static_cast<bool>(front().val);
+            instructionUnit.predictor.Update(front().add, ans);
+            if (front().PredictedAns != ans) {
+                clear();
+                instructionUnit.PC = front().pos;
+                return true;
+            }
+            break;
+        }
+        case CommitType::Done: {
+            std::cout << (static_cast<HalfDataUnit>(registerFile[10]) & (0b1111'1111)) << std::endl;
+            return false;
+        }
+        default:
+            throw Exception("Commit Error");
+    }
+    pop();
+    return true;
 }
 
 void ReorderBuffer::Flush() {
@@ -38,6 +78,10 @@ bool ReorderBuffer::empty() const {
 
 const ReorderBufferData& ReorderBuffer::front() const {
     return buffer.front();
+}
+
+DataUnit ReorderBuffer::Head() const {
+    return buffer.Head();
 }
 
 void ReorderBuffer::pop() {

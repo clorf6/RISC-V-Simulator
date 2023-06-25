@@ -37,14 +37,12 @@ const Register& RegisterFile::operator[](DataUnit pos) const {
     return registers[pos];
 }
 
-Register RegisterFile::Read(DataUnit pos) const {
-    return registers[pos];
-}
-
 void RegisterFile::Write(DataUnit pos, DataUnit other_data, DataUnit other_dependency) {
     if (pos) {
         nex_registers[pos] = other_data;
-        nex_registers[pos].SetDependency(other_dependency);
+        if (other_dependency == nex_registers[pos].dependency) {
+            nex_registers[pos].ResetDependency();
+        }
     }
 }
 

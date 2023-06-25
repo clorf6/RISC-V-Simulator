@@ -7,7 +7,6 @@
 
 #include <cstdio>
 #include <iostream>
-#include "Instructions.h"
 
 using DataUnit = uint32_t;
 using SignedDataUnit = int32_t;
@@ -16,7 +15,7 @@ using SignedHalfDataUnit = int16_t;
 using Byte = uint8_t;
 using SignedByte = int8_t;
 
-enum class InstructionName {
+enum InstructionName {
     /*R type*/
     ADD,
     SUB,

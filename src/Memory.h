@@ -8,6 +8,7 @@
 #include <cstdio>
 #include <iostream>
 #include <string>
+#include "Exception.h"
 #include "Utils.h"
 
 class Memory {
@@ -33,6 +34,8 @@ public:
     void WriteHalfDataUnit(DataUnit, HalfDataUnit);
 
     void WriteByte(DataUnit, Byte);
+
+    void Write(DataUnit, DataUnit, const InstructionName &);
 
     void ReadCode();
 

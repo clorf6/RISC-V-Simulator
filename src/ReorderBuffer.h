@@ -10,16 +10,19 @@
 #include "Utils.h"
 #include "Register.h"
 #include "Memory.h"
+#include "Instructions.h"
+#include "ReservationStation.h"
 #include "CircularQueue.h"
 
-enum class CommitType {
-    Register,
-    Memory,
+enum CommitType {
+    RegisterWrite,
+    MemoryWrite,
     Branch,
     Done
 };
 
 struct ReorderBufferData {
+    InstructionName name;
     CommitType type;
     DataUnit val;
     DataUnit pos, add;
@@ -35,7 +38,8 @@ public:
 
     const ReorderBufferData& operator[](DataUnit) const;
 
-    void Commit();
+    bool Commit(InstructionUnit &, ReservationStation &,
+                RegisterFile &, Memory &);
 
     DataUnit Add(const ReorderBufferData &, RegisterFile &);
 
@@ -46,6 +50,8 @@ public:
     bool empty() const;
 
     const ReorderBufferData& front() const;
+
+    DataUnit Head() const;
 
     void pop();
 

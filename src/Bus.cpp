@@ -11,8 +11,10 @@ Bus::Bus() : memory(4096000), registerFile(),
              reorderBuffer(), reservationStation(), clock(0) {}
 
 void Bus::clear() {
+    registerFile.ResetDependency();
     reorderBuffer.clear();
     reservationStation.clear();
+    instructionUnit.Stall = false;
 }
 
 void Bus::Flush() {
@@ -22,7 +24,8 @@ void Bus::Flush() {
 }
 
 void Bus::Issue() {
-    instructionUnit.Issue(*this);
+    instructionUnit.Issue(reorderBuffer, reservationStation,
+                          registerFile, memory);
 }
 
 void Bus::Execute() {
@@ -31,29 +34,8 @@ void Bus::Execute() {
 }
 
 bool Bus::Commit() {
-    if (reorderBuffer.empty()) return true;
-    if (!reorderBuffer.front().ready) return true;
-    reservationStation.Update(reorderBuffer);
-    switch (reorderBuffer.front().type) {
-        case CommitType::Register:{
-
-        }
-        case CommitType::Memory: {
-
-            break;
-        }
-        case CommitType::Branch: {
-
-        }
-        case CommitType::Done: {
-
-            return false;
-        }
-        default:
-            throw Exception("Wrong Instruction");
-    }
-    reorderBuffer.pop();
-    return true;
+    reorderBuffer.Commit(instructionUnit, reservationStation,
+                         registerFile, memory);
 }
 
 void Bus::Run() {

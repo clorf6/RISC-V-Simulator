@@ -20,7 +20,7 @@ void Unit::Flush() {
 }
 
 void Unit::Return(ReorderBuffer &reorderBuffer,
-                 ReservationStation &reservationStation) {
+                  ReservationStation &reservationStation) {
     if (ready) {
         reservationStation[pos].busy = false;
         reorderBuffer[reservationStation[pos].pos].ready = true;
@@ -29,15 +29,15 @@ void Unit::Return(ReorderBuffer &reorderBuffer,
 }
 
 void AR::Return(ReorderBuffer &reorderBuffer, ReservationStation &reservationStation) {
-    Unit::Return(reorderBuffer,reservationStation);
-    if (ready) reorderBuffer[reservationStation[pos].pos].add = add;
+    Unit::Return(reorderBuffer, reservationStation);
+    if (ready) reorderBuffer[reservationStation[pos].pos].pos = add;
 }
 
 void AddALU::Execute(const InstructionName &Name, const DataUnit &Pos,
                      const DataUnit &rs1, const DataUnit &rs2, const DataUnit &tim) {
     busy = tim, pos = Pos;
     ready = false;
-    switch(Name) {
+    switch (Name) {
         case InstructionName::ADD:
         case InstructionName::ADDI: {
             val = rs1 + rs2;
@@ -53,10 +53,10 @@ void AddALU::Execute(const InstructionName &Name, const DataUnit &Pos,
 }
 
 void ShiftALU::Execute(const InstructionName &Name, const DataUnit &Pos,
-                     const DataUnit &rs1, const DataUnit &rs2, const DataUnit &tim) {
+                       const DataUnit &rs1, const DataUnit &rs2, const DataUnit &tim) {
     busy = tim, pos = Pos;
     ready = false;
-    switch(Name) {
+    switch (Name) {
         case InstructionName::SLL:
         case InstructionName::SLLI: {
             val = rs1 << rs2;
@@ -81,7 +81,7 @@ void BitALU::Execute(const InstructionName &Name, const DataUnit &Pos,
                      const DataUnit &rs1, const DataUnit &rs2, const DataUnit &tim) {
     busy = tim, pos = Pos;
     ready = false;
-    switch(Name) {
+    switch (Name) {
         case InstructionName::OR:
         case InstructionName::ORI: {
             val = rs1 | rs2;
@@ -103,10 +103,10 @@ void BitALU::Execute(const InstructionName &Name, const DataUnit &Pos,
 }
 
 void CompALU::Execute(const InstructionName &Name, const DataUnit &Pos,
-                     const DataUnit &rs1, const DataUnit &rs2, const DataUnit &tim) {
+                      const DataUnit &rs1, const DataUnit &rs2, const DataUnit &tim) {
     busy = tim, pos = Pos;
     ready = false;
-    switch(Name) {
+    switch (Name) {
         case InstructionName::SLT:
         case InstructionName::SLTI:
         case InstructionName::BLT: {
@@ -149,7 +149,7 @@ void AR::Execute(const InstructionName &Name, const DataUnit &Pos,
                  Memory &memory) {
     busy = tim, pos = Pos;
     ready = false;
-    switch(Name) {
+    switch (Name) {
         case InstructionName::LB: {
             val = static_cast<DataUnit>(memory.ReadSignedByte(Add));
             break;

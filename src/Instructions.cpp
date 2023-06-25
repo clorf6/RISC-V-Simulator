@@ -14,34 +14,32 @@ void InstructionUnit::StationInit(const InstructionName &name) {
     RSData.ready = false;
 }
 
-void InstructionUnit::StationInitRegister(Bus &bus, const DataUnit &rs, bool type) {
-    const SignedDataUnit &Dependency = bus.registerFile[rs].dependency;
+void InstructionUnit::StationInitRegister(ReorderBuffer &reorderBuffer,
+                                          RegisterFile &registerFile,
+                                          const DataUnit &rs, bool type) {
+    const SignedDataUnit &Dependency = registerFile[rs].dependency;
     if (!type) {
         if (~Dependency) {
-            if (bus.reorderBuffer[Dependency].ready) {
-                RSData.Vj = bus.reorderBuffer[Dependency].val;
+            if (reorderBuffer[Dependency].ready) {
+                RSData.Vj = reorderBuffer[Dependency].val;
             } else RSData.Qj = Dependency;
-        } else RSData.Vj = bus.registerFile[rs].data;
+        } else RSData.Vj = registerFile[rs].data;
     } else {
         if (~Dependency) {
-            if (bus.reorderBuffer[Dependency].ready) {
-                RSData.Vk = bus.reorderBuffer[Dependency].val;
+            if (reorderBuffer[Dependency].ready) {
+                RSData.Vk = reorderBuffer[Dependency].val;
             } else RSData.Qk = Dependency;
-        } else RSData.Vk = bus.registerFile[rs].data;
+        } else RSData.Vk = registerFile[rs].data;
     }
 }
 
-void InstructionUnit::Issue(Bus &bus) {
+void InstructionUnit::Issue(ReorderBuffer &reorderBuffer, ReservationStation &reservationStation,
+                            RegisterFile &registerFile, Memory &memory) {
     if (Stall) return;
-    if (bus.reorderBuffer.full()) return;
-    DataUnit code = bus.memory.ReadDataUnit(PC);
-    if (code == 0x0ff00513) {
-        RobData.ready = true;
-        RobData.type = CommitType::Done;
-        bus.reorderBuffer.Add(RobData, bus.registerFile);
-        return;
-    }
+    if (reorderBuffer.full()) return;
+    DataUnit code = memory.ReadDataUnit(PC);
     Instruction instruction = GetInstruction(code);
+    RobData.name = instruction.name;
     switch (instruction.name) {
         case InstructionName::ADD:
         case InstructionName::SUB:
@@ -53,14 +51,14 @@ void InstructionUnit::Issue(Bus &bus) {
         case InstructionName::AND:
         case InstructionName::SRL:
         case InstructionName::SRA: {
-            RobData.type = CommitType::Register;
+            RobData.type = CommitType::RegisterWrite;
             RobData.ready = false;
             RobData.pos = instruction.rd;
             StationInit(instruction.name);
-            StationInitRegister(bus, instruction.rs1, false);
-            StationInitRegister(bus, instruction.rs2, true);
-            RSData.pos = bus.reorderBuffer.Add(RobData, bus.registerFile);
-            bus.reservationStation.Add(RSData);
+            StationInitRegister(reorderBuffer, registerFile, instruction.rs1, false);
+            StationInitRegister(reorderBuffer, registerFile, instruction.rs2, true);
+            RSData.pos = reorderBuffer.Add(RobData, registerFile);
+            reservationStation.Add(RSData);
             PC += 4;
             break;
         }
@@ -73,14 +71,14 @@ void InstructionUnit::Issue(Bus &bus) {
         case InstructionName::SLLI:
         case InstructionName::SRLI:
         case InstructionName::SRAI: {
-            RobData.type = CommitType::Register;
+            RobData.type = CommitType::RegisterWrite;
             RobData.ready = false;
             RobData.pos = instruction.rd;
             StationInit(instruction.name);
-            StationInitRegister(bus, instruction.rs1, false);
+            StationInitRegister(reorderBuffer, registerFile, instruction.rs1, false);
             RSData.Vk = instruction.imm;
-            RSData.pos = bus.reorderBuffer.Add(RobData, bus.registerFile);
-            bus.reservationStation.Add(RSData);
+            RSData.pos = reorderBuffer.Add(RobData, registerFile);
+            reservationStation.Add(RSData);
             PC += 4;
             break;
         }
@@ -102,10 +100,10 @@ void InstructionUnit::Issue(Bus &bus) {
                 PC += 4;
             }
             StationInit(instruction.name);
-            StationInitRegister(bus, instruction.rs1, false);
-            StationInitRegister(bus, instruction.rs2, true);
-            RSData.pos = bus.reorderBuffer.Add(RobData, bus.registerFile);
-            bus.reservationStation.Add(RSData);
+            StationInitRegister(reorderBuffer, registerFile, instruction.rs1, false);
+            StationInitRegister(reorderBuffer, registerFile, instruction.rs2, true);
+            RSData.pos = reorderBuffer.Add(RobData, registerFile);
+            reservationStation.Add(RSData);
             break;
         }
         case InstructionName::LB:
@@ -113,72 +111,78 @@ void InstructionUnit::Issue(Bus &bus) {
         case InstructionName::LW:
         case InstructionName::LBU:
         case InstructionName::LHU: {
-            RobData.type = CommitType::Register;
+            RobData.type = CommitType::RegisterWrite;
             RobData.ready = false;
             RobData.pos = instruction.rd;
             StationInit(instruction.name);
-            StationInitRegister(bus, instruction.rs1, true);
+            StationInitRegister(reorderBuffer, registerFile, instruction.rs1, true);
             RSData.Vk = static_cast<DataUnit>(RSData.Vk +
                         static_cast<SignedDataUnit>(instruction.imm));
-            RSData.pos = bus.reorderBuffer.Add(RobData, bus.registerFile);
-            bus.reservationStation.Add(RSData);
+            RSData.pos = reorderBuffer.Add(RobData, registerFile);
+            reservationStation.Add(RSData);
             PC += 4;
             break;
         }
         case InstructionName::SB:
         case InstructionName::SH:
         case InstructionName::SW: {
-            RobData.type = CommitType::Memory;
+            RobData.type = CommitType::MemoryWrite;
             RobData.ready = false;
             StationInit(instruction.name);
-            StationInitRegister(bus, instruction.rs2, false);
-            StationInitRegister(bus, instruction.rs1, true);
+            StationInitRegister(reorderBuffer, registerFile, instruction.rs2, false);
+            StationInitRegister(reorderBuffer, registerFile, instruction.rs1, true);
             RSData.Vk = static_cast<DataUnit>(RSData.Vk +
                         static_cast<SignedDataUnit>(instruction.imm));
-            RSData.pos = bus.reorderBuffer.Add(RobData, bus.registerFile);
-            bus.reservationStation.Add(RSData);
+            RSData.pos = reorderBuffer.Add(RobData, registerFile);
+            reservationStation.Add(RSData);
             PC += 4;
             break;
         }
         case InstructionName::LUI: {
-            RobData.type = CommitType::Register;
+            RobData.type = CommitType::RegisterWrite;
             RobData.ready = true;
             RobData.val = instruction.imm;
             RobData.pos = instruction.rd;
-            bus.reorderBuffer.Add(RobData, bus.registerFile);
+            reorderBuffer.Add(RobData, registerFile);
             PC += 4;
             break;
         }
         case InstructionName::AUIPC: {
-            RobData.type = CommitType::Register;
+            RobData.type = CommitType::RegisterWrite;
             RobData.ready = true;
             RobData.val = PC + static_cast<SignedDataUnit>(instruction.imm);
             RobData.pos = instruction.rd;
-            bus.reorderBuffer.Add(RobData, bus.registerFile);
+            reorderBuffer.Add(RobData, registerFile);
             PC += 4;
             break;
         }
         case InstructionName::JAL: {
-            RobData.type = CommitType::Register;
+            RobData.type = CommitType::RegisterWrite;
             RobData.ready = true;
             RobData.val = PC + 4;
             RobData.pos = instruction.rd;
-            bus.reorderBuffer.Add(RobData, bus.registerFile);
+            reorderBuffer.Add(RobData, registerFile);
             PC = PC + static_cast<SignedDataUnit>(instruction.imm);
             break;
         }
         case InstructionName::JALR: {
-            RobData.type = CommitType::Register;
+            RobData.type = CommitType::RegisterWrite;
             RobData.ready = true;
             RobData.val = PC + 4;
             RobData.pos = instruction.rd;
             StationInit(instruction.name);
-            StationInitRegister(bus, instruction.rs1, 0);
+            StationInitRegister(reorderBuffer, registerFile, instruction.rs1, false);
             RSData.Vj = static_cast<DataUnit>(RSData.Vj +
                         static_cast<SignedDataUnit>(instruction.imm));
-            RSData.pos = bus.reorderBuffer.Add(RobData, bus.registerFile);
-            bus.reservationStation.Add(RSData);
+            RSData.pos = reorderBuffer.Add(RobData, registerFile);
+            reservationStation.Add(RSData);
             Stall = true;
+            break;
+        }
+        case InstructionName::END: {
+            RobData.ready = true;
+            RobData.type = CommitType::Done;
+            reorderBuffer.Add(RobData, registerFile);
             break;
         }
     }

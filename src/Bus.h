@@ -18,7 +18,7 @@
 class Bus {
     friend class InstructionUnit;
 private:
-    Memory memory;
+    class Memory memory;
     RegisterFile registerFile;
     InstructionUnit instructionUnit;
     ReorderBuffer reorderBuffer;

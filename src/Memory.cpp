@@ -48,6 +48,25 @@ void Memory::WriteByte(DataUnit pos, Byte val) {
     *(head + pos) = val;
 }
 
+void Memory::Write(DataUnit pos, DataUnit val, const InstructionName &name) {
+    switch (name) {
+        case InstructionName::SW: {
+            WriteDataUnit(pos, val);
+            break;
+        }
+        case InstructionName::SH: {
+            WriteHalfDataUnit(pos, static_cast<HalfDataUnit>(val));
+            break;
+        }
+        case InstructionName::SB: {
+            WriteByte(pos, static_cast<Byte>(val));
+            break;
+        }
+        default:
+            throw Exception("Memory Write Error");
+    }
+}
+
 void Memory::ReadCode() {
     std::string code;
     DataUnit now = 0;

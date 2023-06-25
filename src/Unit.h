@@ -27,39 +27,38 @@ public:
     void Flush();
 
     virtual void Return(ReorderBuffer &, ReservationStation &);
-
-    virtual void Execute(const InstructionName &, const DataUnit &,
-                         const DataUnit &, const DataUnit &, const DataUnit &);
 };
 
 class AddALU : public Unit {
 public:
     void Execute(const InstructionName &, const DataUnit &,
-                 const DataUnit &, const DataUnit &, const DataUnit &) override;
+                 const DataUnit &, const DataUnit &, const DataUnit &);
 };
 
 class ShiftALU : public Unit {
 public:
     void Execute(const InstructionName &, const DataUnit &,
-                 const DataUnit &, const DataUnit &, const DataUnit &) override;
+                 const DataUnit &, const DataUnit &, const DataUnit &);
 };
 
 class BitALU : public Unit {
 public:
     void Execute(const InstructionName &, const DataUnit &,
-                 const DataUnit &, const DataUnit &, const DataUnit &) override;
+                 const DataUnit &, const DataUnit &, const DataUnit &);
 };
 
 class CompALU : public Unit {
 public:
     void Execute(const InstructionName &, const DataUnit &,
-                 const DataUnit &, const DataUnit &, const DataUnit &) override;
+                 const DataUnit &, const DataUnit &, const DataUnit &);
 };
 
 class AR : public Unit {
 private:
     DataUnit add;
 public:
+    AR(): Unit(), add(0) {}
+
     void Return(ReorderBuffer &, ReservationStation &) override;
 
     void Execute(const InstructionName &, const DataUnit &,
