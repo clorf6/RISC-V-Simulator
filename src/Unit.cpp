@@ -28,16 +28,25 @@ void Unit::Return(ReorderBuffer &reorderBuffer,
     }
 }
 
+void AR::Return(ReorderBuffer &reorderBuffer, ReservationStation &reservationStation) {
+    Unit::Return(reorderBuffer,reservationStation);
+    if (ready) reorderBuffer[reservationStation[pos].pos].add = add;
+}
+
 void AddALU::Execute(const InstructionName &Name, const DataUnit &Pos,
                      const DataUnit &rs1, const DataUnit &rs2, const DataUnit &tim) {
     busy = tim, pos = Pos;
     ready = false;
     switch(Name) {
         case InstructionName::ADD:
-        case InstructionName::ADDI:
+        case InstructionName::ADDI: {
             val = rs1 + rs2;
-        case InstructionName::SUB:
+            break;
+        }
+        case InstructionName::SUB: {
             val = rs1 - rs2;
+            break;
+        }
         default:
             throw Exception("Wrong Instruction");
     }
@@ -49,14 +58,20 @@ void ShiftALU::Execute(const InstructionName &Name, const DataUnit &Pos,
     ready = false;
     switch(Name) {
         case InstructionName::SLL:
-        case InstructionName::SLLI:
+        case InstructionName::SLLI: {
             val = rs1 << rs2;
+            break;
+        }
         case InstructionName::SRL:
-        case InstructionName::SRLI:
+        case InstructionName::SRLI: {
             val = rs1 >> rs2;
+            break;
+        }
         case InstructionName::SRA:
-        case InstructionName::SRAI:
+        case InstructionName::SRAI: {
             val = static_cast<SignedDataUnit>(rs1) >> rs2;
+            break;
+        }
         default:
             throw Exception("Wrong Instruction");
     }
@@ -68,14 +83,20 @@ void BitALU::Execute(const InstructionName &Name, const DataUnit &Pos,
     ready = false;
     switch(Name) {
         case InstructionName::OR:
-        case InstructionName::ORI:
+        case InstructionName::ORI: {
             val = rs1 | rs2;
+            break;
+        }
         case InstructionName::AND:
-        case InstructionName::ANDI:
+        case InstructionName::ANDI: {
             val = rs1 & rs2;
+            break;
+        }
         case InstructionName::XOR:
-        case InstructionName::XORI:
+        case InstructionName::XORI: {
             val = rs1 ^ rs2;
+            break;
+        }
         default:
             throw Exception("Wrong Instruction");
     }
@@ -88,54 +109,78 @@ void CompALU::Execute(const InstructionName &Name, const DataUnit &Pos,
     switch(Name) {
         case InstructionName::SLT:
         case InstructionName::SLTI:
-        case InstructionName::BLT:
+        case InstructionName::BLT: {
             val = static_cast<DataUnit>(
-                  static_cast<SignedDataUnit>(rs1)
-                  < static_cast<SignedDataUnit>(rs2));
+                    static_cast<SignedDataUnit>(rs1)
+                    < static_cast<SignedDataUnit>(rs2));
+            break;
+        }
         case InstructionName::SLTU:
         case InstructionName::SLTIU:
-        case InstructionName::BLTU:
+        case InstructionName::BLTU: {
             val = static_cast<DataUnit>(rs1 < rs2);
-        case InstructionName::BEQ:
+            break;
+        }
+        case InstructionName::BEQ: {
             val = static_cast<DataUnit>(rs1 == rs2);
-        case InstructionName::BNE:
+            break;
+        }
+        case InstructionName::BNE: {
             val = static_cast<DataUnit>(rs1 != rs2);
-        case InstructionName::BGE:
+            break;
+        }
+        case InstructionName::BGE: {
             val = static_cast<DataUnit>(
-                  static_cast<SignedDataUnit>(rs1)
-                  >= static_cast<SignedDataUnit>(rs2));
-        case InstructionName::BGEU:
+                    static_cast<SignedDataUnit>(rs1)
+                    >= static_cast<SignedDataUnit>(rs2));
+            break;
+        }
+        case InstructionName::BGEU: {
             val = static_cast<DataUnit>(rs1 >= rs2);
+            break;
+        }
         default:
             throw Exception("Wrong Instruction");
     }
 }
 
-void MU::Execute(const InstructionName &Name, const DataUnit &Pos,
-                 const DataUnit &rs, const DataUnit &add, const DataUnit &tim,
+void AR::Execute(const InstructionName &Name, const DataUnit &Pos,
+                 const DataUnit &rs, const DataUnit &Add, const DataUnit &tim,
                  Memory &memory) {
     busy = tim, pos = Pos;
     ready = false;
     switch(Name) {
-        case InstructionName::LB:
-            val = static_cast<DataUnit>(memory.ReadSignedByte(add));
-        case InstructionName::LH:
-            val = static_cast<DataUnit>(memory.ReadSignHalfDataUnit(add));
-        case InstructionName::LW:
-            val = static_cast<DataUnit>(memory.ReadSignedDataUnit(add));
-        case InstructionName::LBU:
-            val = static_cast<DataUnit>(memory.ReadByte(add));
-        case InstructionName::LHU:
-            val = static_cast<DataUnit>(memory.ReadHalfDataUnit(add));
+        case InstructionName::LB: {
+            val = static_cast<DataUnit>(memory.ReadSignedByte(Add));
+            break;
+        }
+        case InstructionName::LH: {
+            val = static_cast<DataUnit>(memory.ReadSignHalfDataUnit(Add));
+            break;
+        }
+        case InstructionName::LW: {
+            val = static_cast<DataUnit>(memory.ReadSignedDataUnit(Add));
+            break;
+        }
+        case InstructionName::LBU: {
+            val = static_cast<DataUnit>(memory.ReadByte(Add));
+            break;
+        }
+        case InstructionName::LHU: {
+            val = static_cast<DataUnit>(memory.ReadHalfDataUnit(Add));
+            break;
+        }
         case InstructionName::SB:
-            memory.WriteByte(add, static_cast<Byte>(rs));
         case InstructionName::SH:
-            memory.WriteHalfDataUnit(add, static_cast<HalfDataUnit>(rs));
-        case InstructionName::SW:
-            memory.WriteDataUnit(add, rs);
+        case InstructionName::SW: {
+            val = rs;
+            add = Add;
+            break;
+        }
+            //memory.WriteHalfDataUnit(add, static_cast<HalfDataUnit>(rs));
         default:
             throw Exception("Wrong Instruction");
     }
 }
 
-#endif //RISC_V_SIMULATOR_ALU_CPP
+#endif //RISC_V_SIMULATOR_UNIT_CPP

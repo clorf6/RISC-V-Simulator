@@ -7,6 +7,15 @@
 
 #include "Register.h"
 
+Register::operator DataUnit &() {
+    return data;
+}
+
+Register &Register::operator=(DataUnit other) {
+    data = other;
+    return (*this);
+}
+
 Register &Register::operator+=(SignedDataUnit val) {
     data += val;
     return (*this);
@@ -18,6 +27,14 @@ void Register::ResetDependency() {
 
 void Register::SetDependency(DataUnit other_dependency) {
     dependency = other_dependency;
+}
+
+Register& RegisterFile::operator[](DataUnit pos) {
+    return nex_registers[pos];
+}
+
+const Register& RegisterFile::operator[](DataUnit pos) const {
+    return registers[pos];
 }
 
 Register RegisterFile::Read(DataUnit pos) const {

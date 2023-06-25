@@ -9,60 +9,28 @@
 #include <iostream>
 #include "Register.h"
 #include "Memory.h"
+#include "ReorderBuffer.h"
+#include "ReservationStation.h"
 #include "Utils.h"
+#include "Predictor.h"
 
-enum class InstructionName {
-    /*R type*/
-    ADD,
-    SUB,
-    SLL,
-    SLT,
-    SLTU,
-    XOR,
-    SRL,
-    SRA,
-    OR,
-    AND,
-    /*I type*/
-    ADDI,
-    SLTI,
-    SLTIU,
-    XORI,
-    ORI,
-    ANDI,
-    SLLI,
-    SRLI,
-    SRAI,
-    LB,
-    LH,
-    LW,
-    LBU,
-    LHU,
-    /*S types*/
-    SB,
-    SH,
-    SW,
-    /*B types*/
-    BEQ,
-    BNE,
-    BLT,
-    BGE,
-    BLTU,
-    BGEU,
-    /*U types*/
-    LUI,
-    AUIPE,
-    /*J types*/
-    JAL,
-    JALR,
-    /*Others*/
-    END
+class InstructionUnit {
+    friend class ReservationStation;
+
+private:
+    Register PC;
+    Predictor predictor;
+    bool Stall;
+
+    static void StationInit(const InstructionName &);
+
+    static void StationInitRegister(Bus &, const DataUnit &, bool);
+
+public:
+    void Issue(Bus &);
 };
 
-struct Instruction {
-    InstructionName name;
-    DataUnit rs1, rs2, rd;
-    DataUnit imm;
-};
+static ReorderBufferData RobData;
+static StationData RSData;
 
 #endif //RISC_V_SIMULATOR_INSTRUCTIONS_H

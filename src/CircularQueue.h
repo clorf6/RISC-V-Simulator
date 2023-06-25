@@ -37,6 +37,9 @@ public:
     DataUnit nex(DataUnit pos) const {
         return (pos + 1) % length;
     }
+    DataUnit pre(DataUnit pos) const {
+        return (pos - 1 + length) % length;
+    }
 
     bool empty() const {
         return head == tail;
@@ -69,6 +72,14 @@ public:
 
     const T& front() const {
         return data[head];
+    }
+
+    DataUnit Head() const {
+        return head;
+    }
+
+    DataUnit Tail() const {
+        return pre(tail);
     }
 
     ~CircularQueue() = default;

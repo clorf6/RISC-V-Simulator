@@ -26,7 +26,7 @@ public:
 
     void Flush();
 
-    void Return(ReorderBuffer &, ReservationStation &);
+    virtual void Return(ReorderBuffer &, ReservationStation &);
 
     virtual void Execute(const InstructionName &, const DataUnit &,
                          const DataUnit &, const DataUnit &, const DataUnit &);
@@ -56,8 +56,12 @@ public:
                  const DataUnit &, const DataUnit &, const DataUnit &) override;
 };
 
-class MU : public Unit {
+class AR : public Unit {
+private:
+    DataUnit add;
 public:
+    void Return(ReorderBuffer &, ReservationStation &) override;
+
     void Execute(const InstructionName &, const DataUnit &,
                  const DataUnit &, const DataUnit &, const DataUnit &,
                  Memory &);

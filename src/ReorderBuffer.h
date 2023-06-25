@@ -14,6 +14,7 @@
 
 enum class CommitType {
     Register,
+    Memory,
     Branch,
     Done
 };
@@ -21,8 +22,8 @@ enum class CommitType {
 struct ReorderBufferData {
     CommitType type;
     DataUnit val;
-    DataUnit pos;
-    bool ready;
+    DataUnit pos, add;
+    bool ready, PredictedAns;
 };
 
 class ReorderBuffer {
@@ -36,7 +37,7 @@ public:
 
     void Commit();
 
-    void Add(const ReorderBufferData &);
+    DataUnit Add(const ReorderBufferData &, RegisterFile &);
 
     void Flush();
 

@@ -7,17 +7,21 @@
 
 #include "ReorderBuffer.h"
 
-ReorderBufferData &ReorderBuffer::operator[](DataUnit pos) {
-    return nex_buffer[pos];
+ReorderBufferData &ReorderBuffer::operator[](DataUnit Pos) {
+    return nex_buffer[Pos];
 }
 
-const ReorderBufferData &ReorderBuffer::operator[](DataUnit pos) const {
-    return buffer[pos];
+const ReorderBufferData &ReorderBuffer::operator[](DataUnit Pos) const {
+    return buffer[Pos];
 }
 
-void ReorderBuffer::Add(const ReorderBufferData &now) {
+DataUnit ReorderBuffer::Add(const ReorderBufferData &now,
+                            RegisterFile &registerFile) {
     nex_buffer.push(now);
-    /*TO DO,更新寄存器依赖*/
+    if (now.type == CommitType::Register && now.pos) {
+        registerFile[now.pos].SetDependency(nex_buffer.Tail());
+    }
+    return nex_buffer.Tail();
 }
 
 void ReorderBuffer::Flush() {

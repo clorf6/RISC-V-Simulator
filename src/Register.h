@@ -10,6 +10,7 @@
 #include "Utils.h"
 
 class Register {
+    friend class InstructionUnit;
 private:
     DataUnit data = 0;
     SignedDataUnit dependency = -1;
@@ -17,6 +18,10 @@ public:
     Register() : data(0), dependency(-1) {};
 
     Register(DataUnit other) : data(other), dependency(-1) {};
+
+    operator DataUnit &();
+
+    Register &operator=(DataUnit);
 
     Register &operator+=(SignedDataUnit);
 
@@ -33,6 +38,10 @@ private:
     Register nex_registers[RegisterNum];
 public:
     Register Read(DataUnit) const;
+
+    Register &operator[](DataUnit);
+
+    const Register &operator[](DataUnit) const;
 
     void Write(DataUnit, DataUnit, DataUnit);
 

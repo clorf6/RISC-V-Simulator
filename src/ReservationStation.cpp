@@ -48,9 +48,9 @@ bool ReservationStation::Add(const StationData &now) {
     return false;
 }
 
-void ReservationStation::Execute(Memory &memory) {
+void ReservationStation::Execute(Memory &memory, InstructionUnit &instructionUnit) {
     for (int i = 0; i < StationSize; i++) {
-        if ((!station[i].busy) || station[i].ready) continue;
+        if (!station[i].busy) continue;
         switch (station[i].name) {
             case InstructionName::LB:
             case InstructionName::LH:
@@ -122,6 +122,11 @@ void ReservationStation::Execute(Memory &memory) {
                     }
                 }
                 break;
+            case InstructionName::JALR: // only 1 cycle
+                instructionUnit.PC = station[i].Vj & (~1);
+                instructionUnit.Stall = false;
+                nex_station[i].busy = false;
+                break;
             default:
                 throw Exception("Wrong Instruction");
         }
@@ -141,11 +146,11 @@ void ReservationStation::Return(ReorderBuffer &reorderBuffer) {
 void ReservationStation::Update(const ReorderBuffer &reorderBuffer) {
     for (int i = 0; i < StationSize; i++) {
         if ((!station[i].busy) || station[i].ready) continue;
-        if (reorderBuffer[station[i].Qj].ready) {
-            nex_station[i].Vj = static_cast<DataUnit>(static_cast<SignedDataUnit>(nex_station[i].Vj) + reorderBuffer[station[i].Qj].val);
+        if ((~station[i].Qj) && reorderBuffer[station[i].Qj].ready) {
+            nex_station[i].Vj = reorderBuffer[station[i].Qj].val;
             nex_station[i].Qj = -1;
         }
-        if (reorderBuffer[station[i].Qk].ready) {
+        if ((~station[i].Qk) && reorderBuffer[station[i].Qk].ready) {
             nex_station[i].Vk = static_cast<DataUnit>(static_cast<SignedDataUnit>(nex_station[i].Vk) + reorderBuffer[station[i].Qk].val);
             nex_station[i].Qk = -1;
         }

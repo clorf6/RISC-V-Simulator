@@ -16,9 +16,11 @@
 #include "Memory.h"
 
 class Bus {
+    friend class InstructionUnit;
 private:
     Memory memory;
     RegisterFile registerFile;
+    InstructionUnit instructionUnit;
     ReorderBuffer reorderBuffer;
     ReservationStation reservationStation;
     SignedDataUnit clock;

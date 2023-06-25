@@ -22,11 +22,11 @@ void Bus::Flush() {
 }
 
 void Bus::Issue() {
-
+    instructionUnit.Issue(*this);
 }
 
 void Bus::Execute() {
-    reservationStation.Execute(memory);
+    reservationStation.Execute(memory, instructionUnit);
     reservationStation.Return(reorderBuffer);
 }
 
@@ -35,8 +35,12 @@ bool Bus::Commit() {
     if (!reorderBuffer.front().ready) return true;
     reservationStation.Update(reorderBuffer);
     switch (reorderBuffer.front().type) {
-        case CommitType::Register: {
+        case CommitType::Register:{
 
+        }
+        case CommitType::Memory: {
+
+            break;
         }
         case CommitType::Branch: {
 
@@ -46,7 +50,7 @@ bool Bus::Commit() {
             return false;
         }
         default:
-            break;
+            throw Exception("Wrong Instruction");
     }
     reorderBuffer.pop();
     return true;
