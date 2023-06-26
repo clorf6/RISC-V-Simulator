@@ -7,6 +7,7 @@
 
 #include <cstdio>
 #include <iostream>
+#include "Exception.h"
 
 using DataUnit = uint32_t;
 using SignedDataUnit = int32_t;
@@ -68,5 +69,45 @@ struct Instruction {
     DataUnit rs1, rs2, rd;
     DataUnit imm;
 };
+
+Byte FetchOpcode(const DataUnit &);
+
+DataUnit FetchRd(const DataUnit &);
+
+Byte FetchFunct3(const DataUnit &);
+
+DataUnit FetchRs1(const DataUnit &);
+
+DataUnit FetchRs2(const DataUnit &);
+
+DataUnit FetchFunct7(const DataUnit &);
+
+DataUnit FetchIimm(const DataUnit &);
+
+DataUnit FetchSimm(const DataUnit &);
+
+DataUnit FetchBimm(const DataUnit &);
+
+DataUnit FetchUimm(const DataUnit &);
+
+DataUnit FetchJimm(const DataUnit &);
+
+DataUnit FetchShamt(const DataUnit &);
+
+DataUnit ISSignedExtend(const DataUnit &);
+
+DataUnit BSignedExtend(const DataUnit &);
+
+DataUnit JSignedExtend(const DataUnit &);
+
+InstructionName FetchRInstruction(const DataUnit &);
+
+InstructionName FetchIInstruciton(const DataUnit &);
+
+InstructionName FetchSInstruction(const DataUnit &);
+
+InstructionName FetchBInstruction(const DataUnit &);
+
+Instruction FetchInstruction(const DataUnit &);
 
 #endif //RISC_V_SIMULATOR_UTILS_H

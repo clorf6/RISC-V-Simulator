@@ -10,7 +10,6 @@
 #include "Exception.h"
 #include "Instructions.h"
 #include "ReorderBuffer.h"
-#include "Bus.h"
 #include "Unit.h"
 
 struct StationData {

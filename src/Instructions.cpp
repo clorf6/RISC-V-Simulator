@@ -38,7 +38,7 @@ void InstructionUnit::Issue(ReorderBuffer &reorderBuffer, ReservationStation &re
     if (Stall) return;
     if (reorderBuffer.full()) return;
     DataUnit code = memory.ReadDataUnit(PC);
-    Instruction instruction = GetInstruction(code);
+    Instruction instruction = FetchInstruction(code);
     RobData.name = instruction.name;
     switch (instruction.name) {
         case InstructionName::ADD:
