@@ -8,7 +8,6 @@
 #include <cstdio>
 #include <iostream>
 #include "Exception.h"
-#include "CircularQueue.h"
 #include "Unit.h"
 
 class InstructionUnit;
@@ -30,11 +29,11 @@ constexpr static int ALUSize = 3;
 class ReservationStation {
     friend class Bus;
     friend class ReorderBuffer;
+    friend class Unit;
+    friend class AR;
 private:
     StationData station[StationSize];
     StationData nex_station[StationSize];
-
-    CircularQueue<StationData, StationSize> LSstation;
 
     AddALU addALU[ALUSize];
     ShiftALU shiftALU[ALUSize];

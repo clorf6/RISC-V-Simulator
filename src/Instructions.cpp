@@ -45,7 +45,7 @@ void InstructionUnit::Issue(ReorderBuffer *reorderBuffer, ReservationStation *re
     //std::cout << std::hex << "PC " << PC << std::endl;
     //std::cout << std::hex << code << std::endl;
     Instruction instruction = FetchInstruction(code);
-    //std::cout << "???name " << getEnumName(instruction.name) << '\n';
+    //std::cout << "name " << getEnumName(instruction.name) << '\n';
     RobData.name = instruction.name;
     switch (instruction.name) {
         case InstructionName::ADD:
@@ -204,6 +204,7 @@ void InstructionUnit::Issue(ReorderBuffer *reorderBuffer, ReservationStation *re
             RobData.ready = true;
             RobData.type = CommitType::Done;
             reorderBuffer->Add(RobData, registerFile);
+            Stall = true;
             break;
         }
     }

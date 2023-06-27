@@ -26,9 +26,8 @@ void GlobalPredictor::Update(bool ans) {
 }
 
 bool Predictor::predict(DataUnit add) const {
-    if (count <= 1)
-    return localPredictor.predict(add);
-   else globalPredictor.predict();
+    if (count <= 1) return localPredictor.predict(add);
+    else return globalPredictor.predict();
 }
 
 void Predictor::Update(DataUnit add, bool ans) {

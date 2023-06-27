@@ -6,6 +6,8 @@
 #define RISC_V_SIMULATOR_BUS_CPP
 
 #include "Bus.h"
+#include <algorithm>
+#include <random>
 
 Bus::Bus() : memory(2048000), registerFile(),
              reorderBuffer(), reservationStation(), clock(0) {}
@@ -23,47 +25,51 @@ void Bus::Issue() {
 
 void Bus::Execute() {
     reservationStation.Execute(&memory, &instructionUnit);
-    reservationStation.Return(&reorderBuffer);
 }
 
 bool Bus::Commit() {
+    reservationStation.Return(&reorderBuffer);
     return reorderBuffer.Commit(&instructionUnit, &reservationStation,
-                         &registerFile, &memory);
+                                &registerFile, &memory);
 }
 
 void Bus::Run() {
     bool flag = true;
     memory.ReadCode();
     while (flag) {
-        //printf("-----\n");
-        //printf("clock %d\n",clock);
+        printf("-----\n");
+        printf("clock %d\n",clock);
         Issue();
         Execute();
         flag = Commit();
+        //if (!flag) printf("%d\n",clock);
         ++clock;
-//        printf("~ register ~\n");
-//        for (int i = 0; i < 32; i++)
-//            printf("%d ",i);
-//        printf("\n");
-//        for (int i = 0; i < 32; i++)
-//            printf("%d ",registerFile[i]);
-//        printf("\n");
-//        printf("~ reservation station ~\n");
-//        for (int i = 0; i < 10; i++) {
-//            printf("%d\nnow %s %d %d\n", i, getEnumName(reservationStation.station[i].name),
-//                   reservationStation.station[i].busy, reservationStation.station[i].ready);
-//            printf("nex %s %d %d\n",getEnumName(reservationStation.nex_station[i].name),
-//                   reservationStation.nex_station[i].busy, reservationStation.nex_station[i].ready);
-//        }
-//        printf("~ ls buffer ~\n");
-//        for (int i = reservationStation.LSstation.Head(), j = 8; i != reservationStation.LSstation.End() && j; i = reservationStation.LSstation.nex(i), j--) {
-//            printf("%d\nls %s %d %d\n", i, getEnumName(reservationStation.LSstation[i].name),
-//                   reservationStation.LSstation[i].busy, reservationStation.LSstation[i].ready);
-//        }
-//        printf("~ LSU ~\n");
-//        printf("busy %d %d %d %d\n",reservationStation.LSU.busy, reservationStation.LSU.ready,
-//               reservationStation.LSU.val, reservationStation.LSU.done);
-//        printf("-----\n");
+        printf("~ register ~\n");
+        for (int i = 0; i < 32; i++)
+            printf("%d ",i);
+        printf("\n");
+        for (int i = 0; i < 32; i++)
+            printf("%d ",registerFile[i]);
+        printf("\n");
+        printf("~ reservation station ~\n");
+        for (int i = 0; i < 10; i++) {
+            printf("%d\nnow %s %d %d pos %d\n", i, getEnumName(reservationStation.station[i].name),
+                   reservationStation.station[i].busy, reservationStation.station[i].ready, reservationStation.station[i].pos);
+            printf("nex %s %d %d pos %d\n",getEnumName(reservationStation.nex_station[i].name),
+                   reservationStation.nex_station[i].busy, reservationStation.nex_station[i].ready, reservationStation.station[i].pos);
+        }
+        printf("~ LSU ~\n");
+        printf("busy %d %d %d %d\n",reservationStation.LSU.busy, reservationStation.LSU.ready,
+               reservationStation.LSU.val, reservationStation.LSU.done);
+        printf("~ compALU ~\n");
+        for (int i = 0; i < 3; i++) {
+            printf("busy %d %d %d\n",reservationStation.compALU[i].busy,reservationStation.compALU[i].ready,reservationStation.compALU[i].val);
+        }
+        printf("~ AddALU ~\n");
+        for (int i = 0; i < 3; i++) {
+            printf("busy %d %d %d\n",reservationStation.addALU[i].busy,reservationStation.addALU[i].ready,reservationStation.addALU[i].val);
+        }
+        printf("-----\n");
         Flush();
     }
 }

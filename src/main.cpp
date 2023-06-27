@@ -8,9 +8,13 @@
 #include "Bus.h"
 Bus bus;
 int main() {
-    //freopen("tak.data","r",stdin);
+    //freopen("array_test1.data","r",stdin);
     //freopen("fuck","w",stdout);
-    bus.Run();
+    try {
+        bus.Run();
+    } catch (Exception &error) {
+        std::cout << error.what() << '\n';
+    }
     return 0;
 }
 

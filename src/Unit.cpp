@@ -31,19 +31,20 @@ void Unit::Flush() {
 
 void Unit::Return(ReorderBuffer *reorderBuffer,
                   ReservationStation *reservationStation) {
-    if (ready) {
-        //printf("Ret %d %d %d %s\n", pos, val, (*reservationStation)[pos].pos,
-        //       getEnumName((*reservationStation)[pos].name));
+    if (ready && (!busy)) {
+        //printf("Ret %d %d %d rs %s rob %s\n", pos, val, (*reservationStation)[pos].pos,
+        //       getEnumName((*reservationStation)[pos].name), getEnumName((*reorderBuffer)[(*reservationStation)[pos].pos].name));
         (*reservationStation)[pos].busy =
         (*reservationStation)[pos].ready = false;
         (*reorderBuffer)[(*reservationStation)[pos].pos].ready = true;
         (*reorderBuffer)[(*reservationStation)[pos].pos].val = val;
+        val = 0;
     }
 }
 
 void AR::Return(ReorderBuffer *reorderBuffer,
                 ReservationStation *reservationStation) {
-    if (ready) {
+    if (ready && (!busy)) {
         //printf("Retadd %d\n", add);
         (*reorderBuffer)[(*reservationStation)[pos].pos].add = add;
     }
@@ -178,6 +179,7 @@ void AR::Execute(const InstructionName &Name, const DataUnit &Pos,
         }
         case InstructionName::LW: {
             val = static_cast<DataUnit>(memory->ReadSignedDataUnit(Add));
+            //std::cout << "LW! " << std::dec << Add << ' ' << val << '\n';
             break;
         }
         case InstructionName::LBU: {

@@ -283,7 +283,7 @@ Instruction FetchInstruction(const DataUnit &code) {
     return ret;
 }
 
-const char* getEnumName(InstructionName value) {
+const char* getEnumName(const InstructionName& value) {
     switch (value) {
         // R types
         case ADD: return "ADD";

@@ -66,7 +66,7 @@ enum InstructionName {
     END
 };
 
-const char* getEnumName(InstructionName);
+const char* getEnumName(const InstructionName &);
 
 struct Instruction {
     InstructionName name;

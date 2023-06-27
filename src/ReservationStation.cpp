@@ -7,7 +7,6 @@
 
 #include "ReservationStation.h"
 #include "Instructions.h"
-#include <unistd.h>
 
 StationData &ReservationStation::operator[](DataUnit pos) {
     return nex_station[pos];
@@ -29,7 +28,12 @@ void ReservationStation::Flush() {
 }
 
 void ReservationStation::clear() {
-    for (int i = 0; i < StationSize; i++) nex_station[i].busy = false;
+    for (int i = 0; i < StationSize; i++) {
+        nex_station[i].busy =
+        nex_station[i].ready = false;
+        station[i].busy =
+        station[i].ready = false;
+    }
     LSU.clear();
     for (int i = 0; i < ALUSize; i++) {
         addALU[i].clear();
@@ -41,9 +45,11 @@ void ReservationStation::clear() {
 
 bool ReservationStation::Add(const StationData &now) {
     for (int i = 0; i < StationSize; i++) {
-        if (!station[i].busy) {
+        if ((!station[i].busy) && (!station[i].ready)) {
+
             //printf("add %d %d %d %d %d\npos %d\n", i, now.Vj, now.Vk, now.Qj, now.Qk, now.pos);
             nex_station[i] = now;
+            //printf("add->nex %d %d %d %d %d\npos %d\n", i, nex_station[i].Vj, nex_station[i].Vk, nex_station[i].Qj, nex_station[i].Qk, nex_station[i].pos);
             nex_station[i].busy = true;
             nex_station[i].ready = false;
             return true;
@@ -140,6 +146,7 @@ void ReservationStation::Execute(Memory *memory, InstructionUnit *instructionUni
             case InstructionName::SLTIU: {
                 for (int j = 0; j < ALUSize; j++) {
                     if ((!compALU[j].busy) && (!compALU[j].ready)) {
+                        //printf("comp %d %s\n",j, getEnumName(station[i].name));
                         nex_station[i].ready = true;
                         compALU[j].Execute(station[i].name, i, station[i].Vj, station[i].Vk, 1);
                         break;
