@@ -6,39 +6,46 @@
 #define RISC_V_SIMULATOR_INSTRUCTIONS_CPP
 
 #include "Instructions.h"
+#include "ReorderBuffer.h"
+#include "ReservationStation.h"
 
 void InstructionUnit::StationInit(const InstructionName &name) {
     RSData.name = name;
     RSData.Qj = RSData.Qk = -1;
     RSData.Vj = RSData.Vk = 0;
     RSData.ready = false;
+    RSData.busy = true;
 }
 
-void InstructionUnit::StationInitRegister(ReorderBuffer &reorderBuffer,
-                                          RegisterFile &registerFile,
+void InstructionUnit::StationInitRegister(ReorderBuffer *reorderBuffer,
+                                          RegisterFile *registerFile,
                                           const DataUnit &rs, bool type) {
-    const SignedDataUnit &Dependency = registerFile[rs].dependency;
+    const SignedDataUnit &Dependency = (*registerFile)[rs].dependency;
     if (!type) {
-        if (~Dependency) {
-            if (reorderBuffer[Dependency].ready) {
-                RSData.Vj = reorderBuffer[Dependency].val;
+        if (rs && (~Dependency)) {
+            if ((*reorderBuffer)[Dependency].ready) {
+                RSData.Vj = (*reorderBuffer)[Dependency].val;
             } else RSData.Qj = Dependency;
-        } else RSData.Vj = registerFile[rs].data;
+        } else RSData.Vj = (*registerFile)[rs].data;
     } else {
-        if (~Dependency) {
-            if (reorderBuffer[Dependency].ready) {
-                RSData.Vk = reorderBuffer[Dependency].val;
+        if (rs && (~Dependency)) {
+            if ((*reorderBuffer)[Dependency].ready) {
+                RSData.Vk = (*reorderBuffer)[Dependency].val;
+                //printf("VVV %d\n", RSData.Vk);
             } else RSData.Qk = Dependency;
-        } else RSData.Vk = registerFile[rs].data;
+        } else RSData.Vk = (*registerFile)[rs].data;
     }
 }
 
-void InstructionUnit::Issue(ReorderBuffer &reorderBuffer, ReservationStation &reservationStation,
-                            RegisterFile &registerFile, Memory &memory) {
+void InstructionUnit::Issue(ReorderBuffer *reorderBuffer, ReservationStation *reservationStation,
+                            RegisterFile *registerFile, Memory *memory, const DataUnit &clock) {
     if (Stall) return;
-    if (reorderBuffer.full()) return;
-    DataUnit code = memory.ReadDataUnit(PC);
+    if (reorderBuffer->full()) return;
+    DataUnit code = memory->ReadDataUnit(PC);
+    //std::cout << std::hex << "PC " << PC << std::endl;
+    //std::cout << std::hex << code << std::endl;
     Instruction instruction = FetchInstruction(code);
+    //std::cout << "???name " << getEnumName(instruction.name) << '\n';
     RobData.name = instruction.name;
     switch (instruction.name) {
         case InstructionName::ADD:
@@ -54,12 +61,13 @@ void InstructionUnit::Issue(ReorderBuffer &reorderBuffer, ReservationStation &re
             RobData.type = CommitType::RegisterWrite;
             RobData.ready = false;
             RobData.pos = instruction.rd;
+            RobData.val = 0;
             StationInit(instruction.name);
             StationInitRegister(reorderBuffer, registerFile, instruction.rs1, false);
             StationInitRegister(reorderBuffer, registerFile, instruction.rs2, true);
-            RSData.pos = reorderBuffer.Add(RobData, registerFile);
-            if (reservationStation.Add(RSData)) PC += 4;
-            else reorderBuffer.pop_back();
+            RSData.pos = reorderBuffer->Add(RobData, registerFile);
+            if (reservationStation->Add(RSData)) PC += 4;
+            else reorderBuffer->pop_back();
             break;
         }
         case InstructionName::ADDI:
@@ -74,12 +82,13 @@ void InstructionUnit::Issue(ReorderBuffer &reorderBuffer, ReservationStation &re
             RobData.type = CommitType::RegisterWrite;
             RobData.ready = false;
             RobData.pos = instruction.rd;
+            RobData.val = 0;
             StationInit(instruction.name);
             StationInitRegister(reorderBuffer, registerFile, instruction.rs1, false);
             RSData.Vk = instruction.imm;
-            RSData.pos = reorderBuffer.Add(RobData, registerFile);
-            if (reservationStation.Add(RSData)) PC += 4;
-            else reorderBuffer.pop_back();
+            RSData.pos = reorderBuffer->Add(RobData, registerFile);
+            if (reservationStation->Add(RSData)) PC += 4;
+            else reorderBuffer->pop_back();
             break;
         }
         case InstructionName::BEQ:
@@ -92,6 +101,7 @@ void InstructionUnit::Issue(ReorderBuffer &reorderBuffer, ReservationStation &re
             RobData.ready = false;
             RobData.PredictedAns = predictor.predict(PC);
             RobData.add = PC;
+            RobData.val = 0;
             if (RobData.PredictedAns) {
                 RobData.pos = PC + 4;
                 PC += static_cast<SignedDataUnit>(instruction.imm);
@@ -102,9 +112,9 @@ void InstructionUnit::Issue(ReorderBuffer &reorderBuffer, ReservationStation &re
             StationInit(instruction.name);
             StationInitRegister(reorderBuffer, registerFile, instruction.rs1, false);
             StationInitRegister(reorderBuffer, registerFile, instruction.rs2, true);
-            RSData.pos = reorderBuffer.Add(RobData, registerFile);
-            if (!reservationStation.Add(RSData)) {
-                reorderBuffer.pop_back();
+            RSData.pos = reorderBuffer->Add(RobData, registerFile);
+            if (!reservationStation->Add(RSData)) {
+                reorderBuffer->pop_back();
                 PC = RobData.add;
             }
             break;
@@ -116,14 +126,18 @@ void InstructionUnit::Issue(ReorderBuffer &reorderBuffer, ReservationStation &re
         case InstructionName::LHU: {
             RobData.type = CommitType::RegisterWrite;
             RobData.ready = false;
+            RobData.val = 0;
             RobData.pos = instruction.rd;
+            //std::cout << "rs1 " << instruction.rs1 << ' ' << (*registerFile)[instruction.rs1].dependency << '\n';
             StationInit(instruction.name);
             StationInitRegister(reorderBuffer, registerFile, instruction.rs1, true);
             RSData.Vk = static_cast<DataUnit>(RSData.Vk +
                         static_cast<SignedDataUnit>(instruction.imm));
-            RSData.pos = reorderBuffer.Add(RobData, registerFile);
-            if (reservationStation.Add(RSData)) PC += 4;
-            else reorderBuffer.pop_back();
+            //std::cout << "fuck! " << std::hex << RSData.Vk << ' ' << RSData.Qk << '\n';
+            RSData.pos = reorderBuffer->Add(RobData, registerFile);
+            RSData.clock = clock;
+            if (reservationStation->Add(RSData)) PC += 4;
+            else reorderBuffer->pop_back();
             break;
         }
         case InstructionName::SB:
@@ -131,14 +145,16 @@ void InstructionUnit::Issue(ReorderBuffer &reorderBuffer, ReservationStation &re
         case InstructionName::SW: {
             RobData.type = CommitType::MemoryWrite;
             RobData.ready = false;
+            RobData.val = 0;
             StationInit(instruction.name);
             StationInitRegister(reorderBuffer, registerFile, instruction.rs2, false);
             StationInitRegister(reorderBuffer, registerFile, instruction.rs1, true);
             RSData.Vk = static_cast<DataUnit>(RSData.Vk +
                         static_cast<SignedDataUnit>(instruction.imm));
-            RSData.pos = reorderBuffer.Add(RobData, registerFile);
-            if (reservationStation.Add(RSData)) PC += 4;
-            else reorderBuffer.pop_back();
+            RSData.pos = reorderBuffer->Add(RobData, registerFile);
+            RSData.clock = clock;
+            if (reservationStation->Add(RSData)) PC += 4;
+            else reorderBuffer->pop_back();
             break;
         }
         case InstructionName::LUI: {
@@ -146,7 +162,7 @@ void InstructionUnit::Issue(ReorderBuffer &reorderBuffer, ReservationStation &re
             RobData.ready = true;
             RobData.val = instruction.imm;
             RobData.pos = instruction.rd;
-            reorderBuffer.Add(RobData, registerFile);
+            reorderBuffer->Add(RobData, registerFile);
             PC += 4;
             break;
         }
@@ -155,7 +171,7 @@ void InstructionUnit::Issue(ReorderBuffer &reorderBuffer, ReservationStation &re
             RobData.ready = true;
             RobData.val = PC + static_cast<SignedDataUnit>(instruction.imm);
             RobData.pos = instruction.rd;
-            reorderBuffer.Add(RobData, registerFile);
+            reorderBuffer->Add(RobData, registerFile);
             PC += 4;
             break;
         }
@@ -164,7 +180,7 @@ void InstructionUnit::Issue(ReorderBuffer &reorderBuffer, ReservationStation &re
             RobData.ready = true;
             RobData.val = PC + 4;
             RobData.pos = instruction.rd;
-            reorderBuffer.Add(RobData, registerFile);
+            reorderBuffer->Add(RobData, registerFile);
             PC = PC + static_cast<SignedDataUnit>(instruction.imm);
             break;
         }
@@ -173,19 +189,21 @@ void InstructionUnit::Issue(ReorderBuffer &reorderBuffer, ReservationStation &re
             RobData.ready = true;
             RobData.val = PC + 4;
             RobData.pos = instruction.rd;
+            //std::cout << "imm " << std::hex << instruction.imm << '\n';
             StationInit(instruction.name);
             StationInitRegister(reorderBuffer, registerFile, instruction.rs1, false);
             RSData.Vj = static_cast<DataUnit>(RSData.Vj +
                         static_cast<SignedDataUnit>(instruction.imm));
-            RSData.pos = reorderBuffer.Add(RobData, registerFile);
-            if (reservationStation.Add(RSData)) Stall = true;
-            else reorderBuffer.pop_back();
+            RSData.pos = reorderBuffer->Add(RobData, registerFile);
+            //std::cout << "fuck! " << std::hex << RSData.Vj << ' ' << RSData.Qj << '\n';
+            if (reservationStation->Add(RSData)) Stall = true;
+            else reorderBuffer->pop_back();
             break;
         }
         case InstructionName::END: {
             RobData.ready = true;
             RobData.type = CommitType::Done;
-            reorderBuffer.Add(RobData, registerFile);
+            reorderBuffer->Add(RobData, registerFile);
             break;
         }
     }

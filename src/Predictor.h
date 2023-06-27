@@ -9,20 +9,17 @@
 #include <iostream>
 #include <bitset>
 #include "Utils.h"
-#include "Bus.h"
-#include "Instructions.h"
 
 constexpr static DataUnit LocalHistoryNum = 4;
 constexpr static DataUnit GlobalHistoryNum = 8;
 constexpr static DataUnit BranchNum = 1 << 16;
-
 
 class LocalPredictor {
 private:
     Byte history[BranchNum];
     std::bitset<1 << LocalHistoryNum> prediction[BranchNum];
 public:
-    const bool& predict(DataUnit) const;
+    bool predict(DataUnit) const;
 
     void Update(DataUnit, bool);
 };
@@ -32,7 +29,7 @@ private:
     Byte history;
     std::bitset<1 << GlobalHistoryNum> prediction;
 public:
-    const bool& predict() const;
+    bool predict() const;
 
     void Update(bool);
 };
@@ -45,7 +42,7 @@ private:
 public:
     Predictor() : count(0) {}
 
-    const bool& predict(DataUnit) const;
+    bool predict(DataUnit) const;
 
     void Update(DataUnit, bool);
 };

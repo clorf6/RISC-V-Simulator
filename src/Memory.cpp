@@ -9,7 +9,6 @@
 
 Memory::Memory(DataUnit size) {
     head = new Byte[size];
-    ReadCode();
 }
 
 DataUnit Memory::ReadDataUnit(DataUnit pos) const {

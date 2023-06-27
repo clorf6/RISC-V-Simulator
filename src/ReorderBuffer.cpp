@@ -6,6 +6,8 @@
 #define RISC_V_SIMULATOR_REORDERBUFFER_CPP
 
 #include "ReorderBuffer.h"
+#include "Instructions.h"
+#include "ReservationStation.h"
 
 ReorderBufferData &ReorderBuffer::operator[](DataUnit Pos) {
     return nex_buffer[Pos];
@@ -16,49 +18,70 @@ const ReorderBufferData &ReorderBuffer::operator[](DataUnit Pos) const {
 }
 
 DataUnit ReorderBuffer::Add(const ReorderBufferData &now,
-                            RegisterFile &registerFile) {
+                            RegisterFile *registerFile) {
     nex_buffer.push(now);
     if (now.type == CommitType::RegisterWrite && now.pos) {
-        registerFile[now.pos].SetDependency(nex_buffer.Tail());
+        (*registerFile)[now.pos].SetDependency(nex_buffer.Tail());
     }
     return nex_buffer.Tail();
 }
 
-bool ReorderBuffer::Commit(InstructionUnit &instructionUnit,
-                           ReservationStation &reservationStation,
-                           RegisterFile &registerFile, Memory &memory) {
+bool ReorderBuffer::Commit(InstructionUnit *instructionUnit,
+                           ReservationStation *reservationStation,
+                           RegisterFile *registerFile, Memory *memory) {
     if (empty()) return true;
+    //printf("head %d %s\n", Head(), getEnumName(front().name));
+    //printf("commit %d %d %d %d %d\n", front().ready, front().type, front().pos, front().val, front().add);
     if (!front().ready) return true;
-    reservationStation.Update(*this);
+    reservationStation->Update(this);
     switch (front().type) {
         case CommitType::RegisterWrite: {
-            registerFile.Write(front().pos,
+            registerFile->Write(front().pos,
                                front().val,
                                Head());
             break;
         }
         case CommitType::MemoryWrite: {
-            memory.Write(front().pos,
+            //std::cout << "ST! " << std::dec << front().add << ' ' << front().val << '\n';
+            memory->Write(front().add,
                          front().val,
                          front().name);
             break;
         }
         case CommitType::Branch: {
             bool ans = static_cast<bool>(front().val);
-            instructionUnit.predictor.Update(front().add, ans);
+            (instructionUnit->predictor).Update(front().add, ans);
             if (front().PredictedAns != ans) {
                 clear();
-                instructionUnit.PC = front().pos;
+                registerFile->ResetDependency();
+                reservationStation->clear();
+                instructionUnit->Stall = false;
+                instructionUnit->PC = front().pos;
                 return true;
             }
             break;
         }
         case CommitType::Done: {
-            std::cout << (static_cast<HalfDataUnit>(registerFile[10]) & (0b1111'1111)) << std::endl;
+            std::cout << (static_cast<HalfDataUnit>((*registerFile)[10]) & (0b1111'1111)) << std::endl;
             return false;
         }
         default:
             throw Exception("Commit Error");
+    }
+    switch (front().name) {
+        case InstructionName::LB:
+        case InstructionName::LH:
+        case InstructionName::LW:
+        case InstructionName::SB:
+        case InstructionName::SH:
+        case InstructionName::SW:
+        case InstructionName::LBU:
+        case InstructionName::LHU: {
+            (reservationStation->LSU).done = false;
+            break;
+        }
+        default:
+            break;
     }
     pop();
     return true;
@@ -76,7 +99,7 @@ bool ReorderBuffer::empty() const {
     return buffer.empty();
 }
 
-const ReorderBufferData& ReorderBuffer::front() const {
+ReorderBufferData& ReorderBuffer::front() {
     return buffer.front();
 }
 

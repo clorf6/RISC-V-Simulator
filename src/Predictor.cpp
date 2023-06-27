@@ -7,7 +7,7 @@
 
 #include "Predictor.h"
 
-const bool& LocalPredictor::predict(DataUnit add) const {
+bool LocalPredictor::predict(DataUnit add) const {
     return prediction[add][history[add]];
 }
 
@@ -16,7 +16,7 @@ void LocalPredictor::Update(DataUnit add, bool ans) {
     history[add] = (history[add] >> 1) | (ans ? 0b1000 : 0);
 }
 
-const bool& GlobalPredictor::predict() const {
+bool GlobalPredictor::predict() const {
     return prediction[history];
 }
 
@@ -25,9 +25,10 @@ void GlobalPredictor::Update(bool ans) {
     history = (history >> 1) | (ans ? 0b1000'0000 : 0);
 }
 
-const bool& Predictor::predict(DataUnit add) const {
-    if (count <= 1) return localPredictor.predict(add);
-    else globalPredictor.predict();
+bool Predictor::predict(DataUnit add) const {
+    if (count <= 1)
+    return localPredictor.predict(add);
+   else globalPredictor.predict();
 }
 
 void Predictor::Update(DataUnit add, bool ans) {

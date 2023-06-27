@@ -10,9 +10,11 @@
 #include "Utils.h"
 #include "Register.h"
 #include "Memory.h"
-#include "Instructions.h"
-#include "ReservationStation.h"
 #include "CircularQueue.h"
+#include "Predictor.h"
+
+class InstructionUnit;
+class ReservationStation;
 
 enum CommitType {
     RegisterWrite,
@@ -30,6 +32,8 @@ struct ReorderBufferData {
 };
 
 class ReorderBuffer {
+    friend class Unit;
+    friend class AR;
 private:
     CircularQueue<ReorderBufferData, 32> buffer;
     CircularQueue<ReorderBufferData, 32> nex_buffer;
@@ -38,10 +42,10 @@ public:
 
     const ReorderBufferData& operator[](DataUnit) const;
 
-    bool Commit(InstructionUnit &, ReservationStation &,
-                RegisterFile &, Memory &);
+    bool Commit(InstructionUnit *, ReservationStation *,
+                RegisterFile *, Memory *);
 
-    DataUnit Add(const ReorderBufferData &, RegisterFile &);
+    DataUnit Add(const ReorderBufferData &, RegisterFile *);
 
     void Flush();
 
@@ -49,7 +53,7 @@ public:
 
     bool empty() const;
 
-    const ReorderBufferData& front() const;
+    ReorderBufferData& front();
 
     DataUnit Head() const;
 

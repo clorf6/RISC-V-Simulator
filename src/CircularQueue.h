@@ -22,11 +22,6 @@ public:
         head = other.head, tail = other.tail;
     }
 
-    CircularQueue(const T other[]) {
-        for (int i = 0; i < length; i++) data[i] = other[i];
-        head = 0, tail = length;
-    }
-
     CircularQueue &operator=(const CircularQueue<T, length> &other) {
         if (this == &other) return (*this);
         for (int i = 0; i < length; i++) data[i] = other.data[i];
@@ -74,7 +69,7 @@ public:
         return data[pos];
     }
 
-    const T& front() const {
+    T& front() {
         return data[head];
     }
 
@@ -84,6 +79,10 @@ public:
 
     DataUnit Tail() const {
         return pre(tail);
+    }
+
+    DataUnit End() const {
+        return tail;
     }
 
     ~CircularQueue() = default;

@@ -18,8 +18,6 @@ private:
 public:
     Register() : data(0), dependency(-1) {};
 
-    Register(DataUnit other) : data(other), dependency(-1) {};
-
     operator DataUnit &();
 
     Register &operator=(DataUnit);
@@ -34,12 +32,11 @@ public:
 constexpr static int RegisterNum = 32;
 
 class RegisterFile {
+    friend class InstructionUnit;
 private:
     Register registers[RegisterNum];
     Register nex_registers[RegisterNum];
 public:
-    Register Read(DataUnit) const;
-
     Register &operator[](DataUnit);
 
     const Register &operator[](DataUnit) const;

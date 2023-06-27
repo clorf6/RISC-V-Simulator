@@ -8,12 +8,15 @@
 #include <cstdio>
 #include <iostream>
 #include "Utils.h"
-#include "Instructions.h"
-#include "ReorderBuffer.h"
-#include "ReservationStation.h"
+#include "Memory.h"
+
+class ReorderBuffer;
+class ReservationStation;
 
 class Unit {
     friend class ReservationStation;
+    friend class Bus;
+    friend class ReorderBuffer;
 protected:
     bool ready;
     DataUnit busy;
@@ -22,11 +25,11 @@ protected:
 public:
     Unit() : ready(false), busy(0), val(0), pos(0) {}
 
-    void clear();
-
     void Flush();
 
-    virtual void Return(ReorderBuffer &, ReservationStation &);
+    virtual void clear();
+
+    virtual void Return(ReorderBuffer *, ReservationStation *);
 };
 
 class AddALU : public Unit {
@@ -54,16 +57,22 @@ public:
 };
 
 class AR : public Unit {
+    friend class ReorderBuffer;
+    friend class ReservationStation;
+    friend class Bus;
 private:
     DataUnit add;
+    bool done;
 public:
     AR(): Unit(), add(0) {}
 
-    void Return(ReorderBuffer &, ReservationStation &) override;
+    void clear() override;
+
+    void Return(ReorderBuffer *, ReservationStation *) override;
 
     void Execute(const InstructionName &, const DataUnit &,
                  const DataUnit &, const DataUnit &, const DataUnit &,
-                 Memory &);
+                 Memory *);
 };
 
 #endif //RISC_V_SIMULATOR_UNIT_H

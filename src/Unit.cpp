@@ -6,31 +6,48 @@
 #define RISC_V_SIMULATOR_UNIT_CPP
 
 #include "Unit.h"
+#include "ReservationStation.h"
+#include "ReorderBuffer.h"
 
 void Unit::clear() {
     busy = 0;
     ready = false;
 }
 
+void AR::clear() {
+    Unit::clear();
+    done = false;
+}
+
 void Unit::Flush() {
+    if (ready && (!busy)) {
+        ready = false;
+    }
     if (busy) {
         --busy;
         if (!busy) ready = true;
     }
 }
 
-void Unit::Return(ReorderBuffer &reorderBuffer,
-                  ReservationStation &reservationStation) {
+void Unit::Return(ReorderBuffer *reorderBuffer,
+                  ReservationStation *reservationStation) {
     if (ready) {
-        reservationStation[pos].busy = false;
-        reorderBuffer[reservationStation[pos].pos].ready = true;
-        reorderBuffer[reservationStation[pos].pos].val = val;
+        //printf("Ret %d %d %d %s\n", pos, val, (*reservationStation)[pos].pos,
+        //       getEnumName((*reservationStation)[pos].name));
+        (*reservationStation)[pos].busy =
+        (*reservationStation)[pos].ready = false;
+        (*reorderBuffer)[(*reservationStation)[pos].pos].ready = true;
+        (*reorderBuffer)[(*reservationStation)[pos].pos].val = val;
     }
 }
 
-void AR::Return(ReorderBuffer &reorderBuffer, ReservationStation &reservationStation) {
+void AR::Return(ReorderBuffer *reorderBuffer,
+                ReservationStation *reservationStation) {
+    if (ready) {
+        //printf("Retadd %d\n", add);
+        (*reorderBuffer)[(*reservationStation)[pos].pos].add = add;
+    }
     Unit::Return(reorderBuffer, reservationStation);
-    if (ready) reorderBuffer[reservationStation[pos].pos].pos = add;
 }
 
 void AddALU::Execute(const InstructionName &Name, const DataUnit &Pos,
@@ -48,7 +65,7 @@ void AddALU::Execute(const InstructionName &Name, const DataUnit &Pos,
             break;
         }
         default:
-            throw Exception("Wrong Instruction");
+            throw Exception("Wrong Instruction in Unit");
     }
 }
 
@@ -73,7 +90,7 @@ void ShiftALU::Execute(const InstructionName &Name, const DataUnit &Pos,
             break;
         }
         default:
-            throw Exception("Wrong Instruction");
+            throw Exception("Wrong Instruction in Unit");
     }
 }
 
@@ -98,7 +115,7 @@ void BitALU::Execute(const InstructionName &Name, const DataUnit &Pos,
             break;
         }
         default:
-            throw Exception("Wrong Instruction");
+            throw Exception("Wrong Instruction in Unit");
     }
 }
 
@@ -140,34 +157,35 @@ void CompALU::Execute(const InstructionName &Name, const DataUnit &Pos,
             break;
         }
         default:
-            throw Exception("Wrong Instruction");
+            throw Exception("Wrong Instruction in Unit");
     }
 }
 
 void AR::Execute(const InstructionName &Name, const DataUnit &Pos,
                  const DataUnit &rs, const DataUnit &Add, const DataUnit &tim,
-                 Memory &memory) {
+                 Memory *memory) {
     busy = tim, pos = Pos;
     ready = false;
+    done = true;
     switch (Name) {
         case InstructionName::LB: {
-            val = static_cast<DataUnit>(memory.ReadSignedByte(Add));
+            val = static_cast<DataUnit>(memory->ReadSignedByte(Add));
             break;
         }
         case InstructionName::LH: {
-            val = static_cast<DataUnit>(memory.ReadSignHalfDataUnit(Add));
+            val = static_cast<DataUnit>(memory->ReadSignHalfDataUnit(Add));
             break;
         }
         case InstructionName::LW: {
-            val = static_cast<DataUnit>(memory.ReadSignedDataUnit(Add));
+            val = static_cast<DataUnit>(memory->ReadSignedDataUnit(Add));
             break;
         }
         case InstructionName::LBU: {
-            val = static_cast<DataUnit>(memory.ReadByte(Add));
+            val = static_cast<DataUnit>(memory->ReadByte(Add));
             break;
         }
         case InstructionName::LHU: {
-            val = static_cast<DataUnit>(memory.ReadHalfDataUnit(Add));
+            val = static_cast<DataUnit>(memory->ReadHalfDataUnit(Add));
             break;
         }
         case InstructionName::SB:
@@ -177,9 +195,8 @@ void AR::Execute(const InstructionName &Name, const DataUnit &Pos,
             add = Add;
             break;
         }
-            //memory.WriteHalfDataUnit(add, static_cast<HalfDataUnit>(rs));
         default:
-            throw Exception("Wrong Instruction");
+            throw Exception("Wrong Instruction in Unit");
     }
 }
 

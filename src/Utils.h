@@ -9,6 +9,8 @@
 #include <iostream>
 #include "Exception.h"
 
+#define STI(x) #x
+
 using DataUnit = uint32_t;
 using SignedDataUnit = int32_t;
 using HalfDataUnit = uint16_t;
@@ -64,6 +66,8 @@ enum InstructionName {
     END
 };
 
+const char* getEnumName(InstructionName);
+
 struct Instruction {
     InstructionName name;
     DataUnit rs1, rs2, rd;
@@ -102,7 +106,7 @@ DataUnit JSignedExtend(const DataUnit &);
 
 InstructionName FetchRInstruction(const DataUnit &);
 
-InstructionName FetchIInstruciton(const DataUnit &);
+InstructionName FetchIInstruction(const DataUnit &);
 
 InstructionName FetchSInstruction(const DataUnit &);
 

@@ -8,14 +8,15 @@
 #include <cstdio>
 #include <iostream>
 #include "Exception.h"
-#include "Instructions.h"
-#include "ReorderBuffer.h"
+#include "CircularQueue.h"
 #include "Unit.h"
+
+class InstructionUnit;
 
 struct StationData {
     bool busy, ready;
     InstructionName name;
-    DataUnit Vj, Vk;
+    DataUnit Vj, Vk, clock;
     SignedDataUnit Qj, Qk;
     DataUnit pos;
 
@@ -27,9 +28,13 @@ constexpr static int StationSize = 64;
 constexpr static int ALUSize = 3;
 
 class ReservationStation {
+    friend class Bus;
+    friend class ReorderBuffer;
 private:
     StationData station[StationSize];
     StationData nex_station[StationSize];
+
+    CircularQueue<StationData, StationSize> LSstation;
 
     AddALU addALU[ALUSize];
     ShiftALU shiftALU[ALUSize];
@@ -48,11 +53,11 @@ public:
 
     bool Add(const StationData &);
 
-    void Execute(Memory &, InstructionUnit &);//给ALU&MU运行
+    void Execute(Memory *, InstructionUnit *);//给ALU&MU运行
 
-    void Return(ReorderBuffer &);//返回结果给RoB
+    void Return(ReorderBuffer *);//返回结果给RoB
 
-    void Update(const ReorderBuffer &);//更新保留站中的Q
+    void Update(const ReorderBuffer *);//更新保留站中的Q
 };
 
 #endif //RISC_V_SIMULATOR_RESERVATIONSTATION_H

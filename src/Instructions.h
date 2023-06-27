@@ -9,10 +9,10 @@
 #include <iostream>
 #include "Register.h"
 #include "Memory.h"
-#include "ReorderBuffer.h"
-#include "ReservationStation.h"
 #include "Utils.h"
 #include "Predictor.h"
+#include "ReorderBuffer.h"
+#include "ReservationStation.h"
 
 class InstructionUnit {
     friend class ReservationStation;
@@ -25,11 +25,11 @@ private:
 
     static void StationInit(const InstructionName &);
 
-    static void StationInitRegister(ReorderBuffer &, RegisterFile &, const DataUnit &, bool);
+    static void StationInitRegister(ReorderBuffer *, RegisterFile *, const DataUnit &, bool);
 
 public:
-    void Issue(ReorderBuffer &, ReservationStation &,
-               RegisterFile &, Memory &);
+    void Issue(ReorderBuffer *, ReservationStation *,
+               RegisterFile *, Memory *, const DataUnit &);
 };
 
 static ReorderBufferData RobData;

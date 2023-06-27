@@ -88,7 +88,7 @@ InstructionName FetchRInstruction(const DataUnit &code) {
                 case 0x20:
                     return InstructionName::SUB;
                 default:
-                    throw Exception("Wrong Instruction");
+                    throw Exception("Wrong Instruction in Fetch");
             }
         }
         case 0x1:
@@ -106,7 +106,7 @@ InstructionName FetchRInstruction(const DataUnit &code) {
                 case 0x20:
                     return InstructionName::SRA;
                 default:
-                    throw Exception("Wrong Instruction");
+                    throw Exception("Wrong Instruction in Fetch");
             }
         }
         case 0x6:
@@ -114,7 +114,7 @@ InstructionName FetchRInstruction(const DataUnit &code) {
         case 0x7:
             return InstructionName::AND;
         default:
-            throw Exception("Wrong Instruction");
+            throw Exception("Wrong Instruction in Fetch");
     }
 }
 
@@ -141,7 +141,7 @@ InstructionName FetchIInstruction(const DataUnit &code) {
                     case 0x20:
                         return InstructionName::SRAI;
                     default:
-                        throw Exception("Wrong Instruction");
+                        throw Exception("Wrong Instruction in Fetch");
                 }
             }
             case 0x6:
@@ -149,7 +149,7 @@ InstructionName FetchIInstruction(const DataUnit &code) {
             case 0x7:
                 return InstructionName::ANDI;
             default:
-                throw Exception("Wrong Instruction");
+                throw Exception("Wrong Instruction in Fetch");
         }
     } else {
         switch (Funct3) {
@@ -164,7 +164,7 @@ InstructionName FetchIInstruction(const DataUnit &code) {
             case 0x5:
                 return InstructionName::LHU;
             default:
-                throw Exception("Wrong Instruction");
+                throw Exception("Wrong Instruction in Fetch");
         }
     }
 }
@@ -179,7 +179,7 @@ InstructionName FetchSInstruction(const DataUnit &code) {
         case 0x2:
             return InstructionName::SW;
         default:
-            throw Exception("Wrong Instruction");
+            throw Exception("Wrong Instruction in Fetch");
     }
 }
 
@@ -199,7 +199,7 @@ InstructionName FetchBInstruction(const DataUnit &code) {
         case 0x7:
             return InstructionName::BGEU;
         default:
-            throw Exception("Wrong Instruction");
+            throw Exception("Wrong Instruction in Fetch");
     }
 }
 
@@ -278,9 +278,60 @@ Instruction FetchInstruction(const DataUnit &code) {
             break;
         }
         default:
-            throw Exception("Wrong Instruction");
+            throw Exception("Wrong Instruction in Fetch");
     }
     return ret;
+}
+
+const char* getEnumName(InstructionName value) {
+    switch (value) {
+        // R types
+        case ADD: return "ADD";
+        case SUB: return "SUB";
+        case SLL: return "SLL";
+        case SLT: return "SLT";
+        case SLTU: return "SLTU";
+        case XOR: return "XOR";
+        case SRL: return "SRL";
+        case SRA: return "SRA";
+        case OR: return "OR";
+        case AND: return "AND";
+            // I types
+        case ADDI: return "ADDI";
+        case SLTI: return "SLTI";
+        case SLTIU: return "SLTIU";
+        case XORI: return "XORI";
+        case ORI: return "ORI";
+        case ANDI: return "ANDI";
+        case SLLI: return "SLLI";
+        case SRLI: return "SRLI";
+        case SRAI: return "SRAI";
+        case LB: return "LB";
+        case LH: return "LH";
+        case LW: return "LW";
+        case LBU: return "LBU";
+        case LHU: return "LHU";
+            // S types
+        case SB: return "SB";
+        case SH: return "SH";
+        case SW: return "SW";
+            // B types
+        case BEQ: return "BEQ";
+        case BNE: return "BNE";
+        case BLT: return "BLT";
+        case BGE: return "BGE";
+        case BLTU: return "BLTU";
+        case BGEU: return "BGEU";
+            // U types
+        case LUI: return "LUI";
+        case AUIPC: return "AUIPC";
+            // J types
+        case JAL: return "JAL";
+        case JALR: return "JALR";
+            // Others
+        case END: return "END";
+        default: return "Unknown";
+    }
 }
 
 #endif //RISC_V_SIMULATOR_UTILS_CPP

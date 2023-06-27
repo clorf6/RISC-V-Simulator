@@ -9,14 +9,15 @@
 #include <iostream>
 #include "Utils.h"
 #include "Exception.h"
-#include "Instructions.h"
-#include "ReservationStation.h"
-#include "ReorderBuffer.h"
 #include "Register.h"
 #include "Memory.h"
+#include "Instructions.h"
+#include "ReorderBuffer.h"
+#include "ReservationStation.h"
 
 class Bus {
     friend class InstructionUnit;
+    friend class ReorderBuffer;
 private:
     class Memory memory;
     RegisterFile registerFile;
@@ -26,8 +27,6 @@ private:
     SignedDataUnit clock;
 public:
     Bus();
-
-    void clear();
 
     void Flush();
 
