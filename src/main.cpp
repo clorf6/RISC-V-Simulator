@@ -8,7 +8,7 @@
 #include "Bus.h"
 Bus bus;
 int main() {
-    //freopen("array_test1.data","r",stdin);
+    //freopen("pi.data","r",stdin);
     //freopen("fuck","w",stdout);
     try {
         bus.Run();
