@@ -23,7 +23,7 @@ struct StationData {
     Vj(0), Vk(0), pos(0), Qj(-1), Qk(-1) {}
 };
 
-constexpr static int StationSize = 64;
+constexpr static int StationSize = 48;
 constexpr static int ALUSize = 3;
 
 class ReservationStation {
