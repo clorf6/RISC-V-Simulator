@@ -30,8 +30,6 @@ bool ReorderBuffer::Commit(InstructionUnit *instructionUnit,
                            ReservationStation *reservationStation,
                            RegisterFile *registerFile, Memory *memory) {
     if (empty()) return true;
-//    printf("head %d %s\n", Head(), getEnumName(front().name));
-//    printf("commit %d %d %d %d %d\n", front().ready, front().type, front().pos, front().val, front().add);
     if (!front().ready) return true;
     reservationStation->Update(this);
     switch (front().type) {
@@ -42,7 +40,6 @@ bool ReorderBuffer::Commit(InstructionUnit *instructionUnit,
             break;
         }
         case CommitType::MemoryWrite: {
-            //std::cout << "ST! " << std::dec << front().add << ' ' << front().val << '\n';
             memory->Write(front().add,
                          front().val,
                          front().name);

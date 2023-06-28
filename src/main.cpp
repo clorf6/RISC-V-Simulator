@@ -8,8 +8,6 @@
 #include "Bus.h"
 Bus bus;
 int main() {
-    //freopen("pi.data","r",stdin);
-    //freopen("fuck","w",stdout);
     try {
         bus.Run();
     } catch (Exception &error) {

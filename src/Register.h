@@ -32,7 +32,7 @@ public:
 constexpr static int RegisterNum = 32;
 
 class RegisterFile {
-    friend class InstructionUnit;
+//    friend class InstructionUnit;
 private:
     Register registers[RegisterNum];
     Register nex_registers[RegisterNum];

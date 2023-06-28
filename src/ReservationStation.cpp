@@ -46,10 +46,7 @@ void ReservationStation::clear() {
 bool ReservationStation::Add(const StationData &now) {
     for (int i = 0; i < StationSize; i++) {
         if ((!station[i].busy) && (!station[i].ready)) {
-
-            //printf("add %d %d %d %d %d\npos %d\n", i, now.Vj, now.Vk, now.Qj, now.Qk, now.pos);
             nex_station[i] = now;
-            //printf("add->nex %d %d %d %d %d\npos %d\n", i, nex_station[i].Vj, nex_station[i].Vk, nex_station[i].Qj, nex_station[i].Qk, nex_station[i].pos);
             nex_station[i].busy = true;
             nex_station[i].ready = false;
             return true;
@@ -62,12 +59,6 @@ void ReservationStation::Execute(Memory *memory, InstructionUnit *instructionUni
     int minn = 2e9;
     int mini = -1;
     for (int i = 0; i < StationSize; i++) {
-//        if (instructionUnit->Stall) {
-//            printf("i %d %d %d %d\n",i,station[i].busy,station[i].ready,station[i].name);
-//            std::cout << station[i].Qj << ' ' << station[i].Qk << '\n';
-//            printf("nexi %d %d\n",nex_station[i].busy, nex_station[i].ready);
-//            usleep(5e4);
-//        }
         if (!station[i].busy) continue;
         switch(station[i].name) {
             case InstructionName::LB:
@@ -90,7 +81,6 @@ void ReservationStation::Execute(Memory *memory, InstructionUnit *instructionUni
         if (station[i].ready) continue;
         if (~station[i].Qj) continue;
         if (~station[i].Qk) continue;
-//        printf("i bob %d\n",i);
         switch (station[i].name) {
             case InstructionName::ADD:
             case InstructionName::SUB:
@@ -146,7 +136,6 @@ void ReservationStation::Execute(Memory *memory, InstructionUnit *instructionUni
             case InstructionName::SLTIU: {
                 for (int j = 0; j < ALUSize; j++) {
                     if ((!compALU[j].busy) && (!compALU[j].ready)) {
-                        //printf("comp %d %s\n",j, getEnumName(station[i].name));
                         nex_station[i].ready = true;
                         compALU[j].Execute(station[i].name, i, station[i].Vj, station[i].Vk, 1);
                         break;
@@ -155,10 +144,8 @@ void ReservationStation::Execute(Memory *memory, InstructionUnit *instructionUni
                 break;
             }
             case InstructionName::JALR: {// only 1 cycle
-                //std::cout << "JALR EX!\n";
                 instructionUnit->PC = station[i].Vj & (~1);
                 instructionUnit->Stall = false;
-                //std::cout << "nowPC " << std::dec << instructionUnit->PC << '\n';
                 nex_station[i].busy = nex_station[i].ready = false;
                 break;
             }

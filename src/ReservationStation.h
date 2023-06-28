@@ -27,10 +27,7 @@ constexpr static int StationSize = 64;
 constexpr static int ALUSize = 3;
 
 class ReservationStation {
-    friend class Bus;
     friend class ReorderBuffer;
-    friend class Unit;
-    friend class AR;
 private:
     StationData station[StationSize];
     StationData nex_station[StationSize];

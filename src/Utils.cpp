@@ -283,55 +283,5 @@ Instruction FetchInstruction(const DataUnit &code) {
     return ret;
 }
 
-const char* getEnumName(const InstructionName& value) {
-    switch (value) {
-        // R types
-        case ADD: return "ADD";
-        case SUB: return "SUB";
-        case SLL: return "SLL";
-        case SLT: return "SLT";
-        case SLTU: return "SLTU";
-        case XOR: return "XOR";
-        case SRL: return "SRL";
-        case SRA: return "SRA";
-        case OR: return "OR";
-        case AND: return "AND";
-            // I types
-        case ADDI: return "ADDI";
-        case SLTI: return "SLTI";
-        case SLTIU: return "SLTIU";
-        case XORI: return "XORI";
-        case ORI: return "ORI";
-        case ANDI: return "ANDI";
-        case SLLI: return "SLLI";
-        case SRLI: return "SRLI";
-        case SRAI: return "SRAI";
-        case LB: return "LB";
-        case LH: return "LH";
-        case LW: return "LW";
-        case LBU: return "LBU";
-        case LHU: return "LHU";
-            // S types
-        case SB: return "SB";
-        case SH: return "SH";
-        case SW: return "SW";
-            // B types
-        case BEQ: return "BEQ";
-        case BNE: return "BNE";
-        case BLT: return "BLT";
-        case BGE: return "BGE";
-        case BLTU: return "BLTU";
-        case BGEU: return "BGEU";
-            // U types
-        case LUI: return "LUI";
-        case AUIPC: return "AUIPC";
-            // J types
-        case JAL: return "JAL";
-        case JALR: return "JALR";
-            // Others
-        case END: return "END";
-        default: return "Unknown";
-    }
-}
 
 #endif //RISC_V_SIMULATOR_UTILS_CPP

@@ -32,8 +32,8 @@ struct ReorderBufferData {
 };
 
 class ReorderBuffer {
-    friend class Unit;
-    friend class AR;
+//    friend class Unit;
+//    friend class AR;
 private:
     CircularQueue<ReorderBufferData, 32> buffer;
     CircularQueue<ReorderBufferData, 32> nex_buffer;

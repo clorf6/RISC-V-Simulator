@@ -15,8 +15,6 @@ class ReservationStation;
 
 class Unit {
     friend class ReservationStation;
-    friend class Bus;
-    friend class ReorderBuffer;
 protected:
     bool ready;
     DataUnit busy;
@@ -59,7 +57,6 @@ public:
 class AR : public Unit {
     friend class ReorderBuffer;
     friend class ReservationStation;
-    friend class Bus;
 private:
     DataUnit add;
     bool done;

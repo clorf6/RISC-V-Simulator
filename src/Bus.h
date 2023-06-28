@@ -16,8 +16,6 @@
 #include "ReservationStation.h"
 
 class Bus {
-    friend class InstructionUnit;
-    friend class ReorderBuffer;
 private:
     class Memory memory;
     RegisterFile registerFile;
@@ -38,7 +36,5 @@ public:
 
     void Run();
 };
-
-void Run(Bus &);
 
 #endif //RISC_V_SIMULATOR_BUS_H

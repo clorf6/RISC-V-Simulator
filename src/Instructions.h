@@ -17,7 +17,6 @@
 class InstructionUnit {
     friend class ReservationStation;
     friend class ReorderBuffer;
-    friend class Bus;
 private:
     Register PC;
     Predictor predictor;

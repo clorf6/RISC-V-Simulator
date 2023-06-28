@@ -31,7 +31,6 @@ void InstructionUnit::StationInitRegister(ReorderBuffer *reorderBuffer,
         if (rs && (~Dependency)) {
             if ((*reorderBuffer)[Dependency].ready) {
                 RSData.Vk = (*reorderBuffer)[Dependency].val;
-                //printf("VVV %d\n", RSData.Vk);
             } else RSData.Qk = Dependency;
         } else RSData.Vk = (*registerFile)[rs].data;
     }
@@ -42,10 +41,7 @@ void InstructionUnit::Issue(ReorderBuffer *reorderBuffer, ReservationStation *re
     if (Stall) return;
     if (reorderBuffer->full()) return;
     DataUnit code = memory->ReadDataUnit(PC);
-    //std::cout << std::hex << "PC " << PC << std::endl;
-    //std::cout << std::hex << code << std::endl;
     Instruction instruction = FetchInstruction(code);
-    //std::cout << "name " << getEnumName(instruction.name) << '\n';
     RobData.name = instruction.name;
     switch (instruction.name) {
         case InstructionName::ADD:
@@ -128,12 +124,10 @@ void InstructionUnit::Issue(ReorderBuffer *reorderBuffer, ReservationStation *re
             RobData.ready = false;
             RobData.val = 0;
             RobData.pos = instruction.rd;
-            //std::cout << "rs1 " << instruction.rs1 << ' ' << (*registerFile)[instruction.rs1].dependency << '\n';
             StationInit(instruction.name);
             StationInitRegister(reorderBuffer, registerFile, instruction.rs1, true);
             RSData.Vk = static_cast<DataUnit>(RSData.Vk +
                         static_cast<SignedDataUnit>(instruction.imm));
-            //std::cout << "fuck! " << std::hex << RSData.Vk << ' ' << RSData.Qk << '\n';
             RSData.pos = reorderBuffer->Add(RobData, registerFile);
             RSData.clock = clock;
             if (reservationStation->Add(RSData)) PC += 4;
@@ -189,13 +183,11 @@ void InstructionUnit::Issue(ReorderBuffer *reorderBuffer, ReservationStation *re
             RobData.ready = true;
             RobData.val = PC + 4;
             RobData.pos = instruction.rd;
-            //std::cout << "imm " << std::hex << instruction.imm << '\n';
             StationInit(instruction.name);
             StationInitRegister(reorderBuffer, registerFile, instruction.rs1, false);
             RSData.Vj = static_cast<DataUnit>(RSData.Vj +
                         static_cast<SignedDataUnit>(instruction.imm));
             RSData.pos = reorderBuffer->Add(RobData, registerFile);
-            //std::cout << "fuck! " << std::hex << RSData.Vj << ' ' << RSData.Qj << '\n';
             if (reservationStation->Add(RSData)) Stall = true;
             else reorderBuffer->pop_back();
             break;
