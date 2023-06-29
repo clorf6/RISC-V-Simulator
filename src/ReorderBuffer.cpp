@@ -35,18 +35,19 @@ bool ReorderBuffer::Commit(InstructionUnit *instructionUnit,
     switch (front().type) {
         case CommitType::RegisterWrite: {
             registerFile->Write(front().pos,
-                               front().val,
-                               Head());
+                                front().val,
+                                Head());
             break;
         }
         case CommitType::MemoryWrite: {
             memory->Write(front().add,
-                         front().val,
-                         front().name);
+                          front().val,
+                          front().name);
             break;
         }
         case CommitType::Branch: {
             bool ans = static_cast<bool>(front().val);
+            total++;
             (instructionUnit->predictor).Update(front().add, ans);
             if (front().PredictedAns != ans) {
                 clear();
@@ -55,7 +56,7 @@ bool ReorderBuffer::Commit(InstructionUnit *instructionUnit,
                 instructionUnit->Stall = false;
                 instructionUnit->PC = front().pos;
                 return true;
-            }
+            } else correct++;
             break;
         }
         case CommitType::Done: {

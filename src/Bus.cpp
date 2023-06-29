@@ -6,7 +6,6 @@
 #define RISC_V_SIMULATOR_BUS_CPP
 
 #include "Bus.h"
-#include <algorithm>
 
 Bus::Bus() : memory(2048000), registerFile(),
              reorderBuffer(), reservationStation(), clock(0) {}
@@ -42,6 +41,8 @@ void Bus::Run() {
         ++clock;
         Flush();
     }
+    if (!reorderBuffer.total) printf("No branch\n");
+    else printf("%.6lf\n", 1.0 * reorderBuffer.correct / reorderBuffer.total);
 }
 
 #endif //RISC_V_SIMULATOR_BUS_CPP

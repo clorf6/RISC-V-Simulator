@@ -11,12 +11,12 @@
 #include "Utils.h"
 
 constexpr static DataUnit LocalHistoryNum = 4;
-constexpr static DataUnit GlobalHistoryNum = 8;
+constexpr static DataUnit GlobalHistoryNum = 16;
 constexpr static DataUnit BranchNum = 1 << 16;
 
 class LocalPredictor {
 private:
-    Byte history[BranchNum];
+    Byte history[BranchNum]{0};
     std::bitset<1 << LocalHistoryNum> prediction[BranchNum];
 public:
     bool predict(DataUnit) const;
@@ -26,7 +26,7 @@ public:
 
 class GlobalPredictor {
 private:
-    Byte history;
+    Byte history{};
     std::bitset<1 << GlobalHistoryNum> prediction;
 public:
     bool predict() const;
@@ -40,7 +40,7 @@ private:
     GlobalPredictor globalPredictor;
     DataUnit count;
 public:
-    Predictor() : count(0) {}
+    Predictor() : count(1) {}
 
     bool predict(DataUnit) const;
 

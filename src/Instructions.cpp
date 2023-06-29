@@ -127,7 +127,7 @@ void InstructionUnit::Issue(ReorderBuffer *reorderBuffer, ReservationStation *re
             StationInit(instruction.name);
             StationInitRegister(reorderBuffer, registerFile, instruction.rs1, true);
             RSData.Vk = static_cast<DataUnit>(RSData.Vk +
-                        static_cast<SignedDataUnit>(instruction.imm));
+                                              static_cast<SignedDataUnit>(instruction.imm));
             RSData.pos = reorderBuffer->Add(RobData, registerFile);
             RSData.clock = clock;
             if (reservationStation->Add(RSData)) PC += 4;
@@ -144,7 +144,7 @@ void InstructionUnit::Issue(ReorderBuffer *reorderBuffer, ReservationStation *re
             StationInitRegister(reorderBuffer, registerFile, instruction.rs2, false);
             StationInitRegister(reorderBuffer, registerFile, instruction.rs1, true);
             RSData.Vk = static_cast<DataUnit>(RSData.Vk +
-                        static_cast<SignedDataUnit>(instruction.imm));
+                                              static_cast<SignedDataUnit>(instruction.imm));
             RSData.pos = reorderBuffer->Add(RobData, registerFile);
             RSData.clock = clock;
             if (reservationStation->Add(RSData)) PC += 4;
@@ -186,7 +186,7 @@ void InstructionUnit::Issue(ReorderBuffer *reorderBuffer, ReservationStation *re
             StationInit(instruction.name);
             StationInitRegister(reorderBuffer, registerFile, instruction.rs1, false);
             RSData.Vj = static_cast<DataUnit>(RSData.Vj +
-                        static_cast<SignedDataUnit>(instruction.imm));
+                                              static_cast<SignedDataUnit>(instruction.imm));
             RSData.pos = reorderBuffer->Add(RobData, registerFile);
             if (reservationStation->Add(RSData)) Stall = true;
             else reorderBuffer->pop_back();

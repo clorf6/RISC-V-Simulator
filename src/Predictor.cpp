@@ -22,7 +22,7 @@ bool GlobalPredictor::predict() const {
 
 void GlobalPredictor::Update(bool ans) {
     prediction[history] = ans;
-    history = (history >> 1) | (ans ? 0b1000'0000 : 0);
+    history = (history >> 1) | (ans ? 0x8000 : 0);
 }
 
 bool Predictor::predict(DataUnit add) const {
@@ -31,8 +31,13 @@ bool Predictor::predict(DataUnit add) const {
 }
 
 void Predictor::Update(DataUnit add, bool ans) {
-    if (localPredictor.predict(add) == ans && count > 0) count--;
-    if (globalPredictor.predict() == ans && count < 3) count++;
+    if (count <= 1) {
+        if (localPredictor.predict(add) != ans) count++;
+        else if (count > 0) count--;
+    } else {
+        if (globalPredictor.predict() != ans) count--;
+        else if (count < 3) count++;
+    }
     localPredictor.Update(add, ans);
     globalPredictor.Update(ans);
 }

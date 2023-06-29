@@ -28,7 +28,8 @@ struct ReorderBufferData {
     CommitType type;
     DataUnit val;
     DataUnit pos, add;
-    bool ready, PredictedAns;
+    bool ready;
+    bool PredictedAns;
 };
 
 class ReorderBuffer {
@@ -36,6 +37,8 @@ private:
     CircularQueue<ReorderBufferData, 32> buffer;
     CircularQueue<ReorderBufferData, 32> nex_buffer;
 public:
+    int total, correct;
+
     ReorderBufferData& operator[](DataUnit);
 
     const ReorderBufferData& operator[](DataUnit) const;
