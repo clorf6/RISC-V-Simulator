@@ -8,7 +8,6 @@
 #include "Bus.h"
 Bus bus;
 int main() {
-    //freopen("multiarray.data", "r", stdin);
     try {
         bus.Run();
     } catch (Exception &error) {
