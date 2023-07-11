@@ -6,6 +6,8 @@
 #define RISC_V_SIMULATOR_BUS_CPP
 
 #include "Bus.h"
+#include <algorithm>
+#include <random>
 
 Bus::Bus() : memory(2048000), registerFile(),
              reorderBuffer(), reservationStation(), clock(0) {}
@@ -34,10 +36,17 @@ bool Bus::Commit() {
 void Bus::Run() {
     bool flag = true;
     memory.ReadCode();
+    int a[3] = {0, 1, 2};
     while (flag) {
-        Issue();
-        Execute();
-        flag = Commit();
+        std::shuffle(a, a + 3, std::mt19937(std::random_device()()));
+        for (int i : a) {
+            if (!i) Issue();
+            else if (i == 1) Execute();
+            else flag = Commit();
+        }
+//        Issue();
+//        Execute();
+//        flag = Commit();
         ++clock;
         Flush();
     }

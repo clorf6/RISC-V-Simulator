@@ -9,8 +9,6 @@
 #include <iostream>
 #include "Exception.h"
 
-#define STI(x) #x
-
 using DataUnit = uint32_t;
 using SignedDataUnit = int32_t;
 using HalfDataUnit = uint16_t;
